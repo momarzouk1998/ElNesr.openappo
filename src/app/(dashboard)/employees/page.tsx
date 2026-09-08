@@ -352,12 +352,9 @@ export default function EmployeesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 flex items-center gap-3">
-            <span className="p-2.5 rounded-2xl bg-brand-primary/10 text-brand-primary">👷</span>
+            <span className="p-2.5 rounded-2xl bg-blue-50 text-blue-800">👷</span>
             شؤون الموظفين والرواتب والسلف
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            إدارة بيانات العاملين، تسجيل السلف اليومية، وصرف الرواتب الشهرية مع الربط المباشر بالخزينة والمصروفات
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -375,7 +372,7 @@ export default function EmployeesPage() {
               setErrorMsg("");
               setShowEmpModal(true);
             }}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-primary text-white font-bold hover:bg-brand-primary-hover shadow-sm shadow-brand-primary/30 transition-all text-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-800 text-white font-bold hover:bg-blue-900 shadow-sm shadow-blue-800/30 transition-all text-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             إضافة موظف
@@ -392,7 +389,7 @@ export default function EmployeesPage() {
               setErrorMsg("");
               setShowAdvanceModal(true);
             }}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 text-white font-bold hover:bg-amber-600 shadow-sm shadow-amber-500/30 transition-all text-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 text-white font-bold hover:bg-amber-600 shadow-sm shadow-amber-500/30 transition-all text-sm cursor-pointer"
           >
             <Wallet className="w-4 h-4" />
             تسجيل سلفة
@@ -451,9 +448,9 @@ export default function EmployeesPage() {
       <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-2xl w-full sm:w-fit overflow-x-auto">
         <button
           onClick={() => setActiveTab("employees")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 cursor-pointer ${
             activeTab === "employees"
-              ? "bg-white text-brand-primary shadow-sm"
+              ? "bg-white text-blue-800 shadow-sm"
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
@@ -462,9 +459,9 @@ export default function EmployeesPage() {
         </button>
         <button
           onClick={() => setActiveTab("advances")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 cursor-pointer ${
             activeTab === "advances"
-              ? "bg-white text-brand-primary shadow-sm"
+              ? "bg-white text-blue-800 shadow-sm"
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
@@ -473,9 +470,9 @@ export default function EmployeesPage() {
         </button>
         <button
           onClick={() => setActiveTab("salaries")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 cursor-pointer ${
             activeTab === "salaries"
-              ? "bg-white text-brand-primary shadow-sm"
+              ? "bg-white text-blue-800 shadow-sm"
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
@@ -516,7 +513,7 @@ export default function EmployeesPage() {
                   <div>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-2xl bg-brand-primary/10 text-brand-primary font-black text-lg flex items-center justify-center">
+                        <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-800 font-black text-lg flex items-center justify-center">
                           {emp.name.charAt(0)}
                         </div>
                         <div>
@@ -731,7 +728,7 @@ export default function EmployeesPage() {
                   {salaries.map((sal) => (
                     <tr key={sal.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="p-3.5 font-bold text-slate-900">{sal.employee?.name || "—"}</td>
-                      <td className="p-3.5 font-bold text-brand-primary">
+                      <td className="p-3.5 font-bold text-blue-800">
                         شهر {sal.month} / {sal.year}
                       </td>
                       <td className="p-3.5">{formatEGP(sal.basic_salary)}</td>
@@ -791,7 +788,7 @@ export default function EmployeesPage() {
                   placeholder="مثال: أحمد محمود الغواص"
                   value={empForm.name}
                   onChange={(e) => setEmpForm({ ...empForm, name: e.target.value })}
-                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none"
+                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
                 />
               </div>
 
@@ -803,7 +800,7 @@ export default function EmployeesPage() {
                     placeholder="مثال: فني لوحات"
                     value={empForm.job_title}
                     onChange={(e) => setEmpForm({ ...empForm, job_title: e.target.value })}
-                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
                 <div>
@@ -813,7 +810,7 @@ export default function EmployeesPage() {
                     placeholder="010xxxxxxxx"
                     value={empForm.phone}
                     onChange={(e) => setEmpForm({ ...empForm, phone: e.target.value })}
-                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
               </div>
@@ -827,7 +824,7 @@ export default function EmployeesPage() {
                     placeholder="0"
                     value={empForm.basic_salary}
                     onChange={(e) => setEmpForm({ ...empForm, basic_salary: e.target.value })}
-                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
                 <div>
@@ -836,7 +833,7 @@ export default function EmployeesPage() {
                     type="date"
                     value={empForm.hire_date}
                     onChange={(e) => setEmpForm({ ...empForm, hire_date: e.target.value })}
-                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
               </div>
@@ -848,7 +845,7 @@ export default function EmployeesPage() {
                   placeholder="أي تفاصيل أو ملاحظات إضافية..."
                   value={empForm.notes}
                   onChange={(e) => setEmpForm({ ...empForm, notes: e.target.value })}
-                  className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none resize-none"
+                  className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none resize-none"
                 />
               </div>
 
@@ -856,7 +853,7 @@ export default function EmployeesPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 h-11 rounded-xl bg-brand-primary text-white font-bold hover:bg-brand-primary-hover transition-colors disabled:opacity-50"
+                  className="flex-1 h-11 rounded-xl bg-blue-800 text-white font-bold hover:bg-blue-900 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {submitting ? "جاري الحفظ..." : "حفظ الموظف"}
                 </button>
@@ -903,7 +900,7 @@ export default function EmployeesPage() {
                   required
                   value={advForm.employee_id}
                   onChange={(e) => setAdvForm({ ...advForm, employee_id: e.target.value })}
-                  className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-primary outline-none"
+                  className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600 outline-none"
                 >
                   <option value="">اختر الموظف...</option>
                   {employees.map((emp) => (
@@ -924,7 +921,7 @@ export default function EmployeesPage() {
                     placeholder="0"
                     value={advForm.amount}
                     onChange={(e) => setAdvForm({ ...advForm, amount: e.target.value })}
-                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-base font-black text-amber-600 focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-base font-black text-amber-600 focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
                 <div>
@@ -934,7 +931,7 @@ export default function EmployeesPage() {
                     required
                     value={advForm.advance_date}
                     onChange={(e) => setAdvForm({ ...advForm, advance_date: e.target.value })}
-                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
               </div>
@@ -945,7 +942,7 @@ export default function EmployeesPage() {
                   required
                   value={advForm.treasury_id}
                   onChange={(e) => setAdvForm({ ...advForm, treasury_id: e.target.value })}
-                  className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand-primary outline-none"
+                  className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-600 outline-none"
                 >
                   <option value="">اختر الخزينة...</option>
                   {treasuries.map((tr) => (
@@ -963,7 +960,7 @@ export default function EmployeesPage() {
                   placeholder="سلفة تحت حساب الراتب..."
                   value={advForm.notes}
                   onChange={(e) => setAdvForm({ ...advForm, notes: e.target.value })}
-                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none"
+                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
                 />
               </div>
 
@@ -1022,7 +1019,7 @@ export default function EmployeesPage() {
                   required
                   value={salForm.employee_id}
                   onChange={(e) => handleSalaryEmpChange(e.target.value)}
-                  className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-primary outline-none"
+                  className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600 outline-none"
                 >
                   <option value="">اختر الموظف...</option>
                   {employees.map((emp) => (
@@ -1039,7 +1036,7 @@ export default function EmployeesPage() {
                   <select
                     value={salForm.month}
                     onChange={(e) => setSalForm({ ...salForm, month: Number(e.target.value) })}
-                    className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600 outline-none"
                   >
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
                       <option key={m} value={m}>
@@ -1054,7 +1051,7 @@ export default function EmployeesPage() {
                     type="number"
                     value={salForm.year}
                     onChange={(e) => setSalForm({ ...salForm, year: Number(e.target.value) })}
-                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
               </div>
@@ -1109,7 +1106,7 @@ export default function EmployeesPage() {
                     required
                     value={salForm.treasury_id}
                     onChange={(e) => setSalForm({ ...salForm, treasury_id: e.target.value })}
-                    className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-600 outline-none"
                   >
                     <option value="">اختر الخزينة...</option>
                     {treasuries.map((tr) => (
@@ -1126,7 +1123,7 @@ export default function EmployeesPage() {
                     required
                     value={salForm.payment_date}
                     onChange={(e) => setSalForm({ ...salForm, payment_date: e.target.value })}
-                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none"
+                    className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
                   />
                 </div>
               </div>
@@ -1138,7 +1135,7 @@ export default function EmployeesPage() {
                   placeholder="ملاحظات اختيارية على الراتب..."
                   value={salForm.notes}
                   onChange={(e) => setSalForm({ ...salForm, notes: e.target.value })}
-                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary outline-none"
+                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
                 />
               </div>
 
@@ -1146,7 +1143,7 @@ export default function EmployeesPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 h-11 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                  className="flex-1 h-11 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {submitting ? "جاري الصرف..." : "تأكيد وصرف الراتب"}
                 </button>
@@ -1182,7 +1179,7 @@ export default function EmployeesPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">عن شهر:</span>
-                <span className="font-bold text-brand-primary">شهر {receiptData.month} / {receiptData.year}</span>
+                <span className="font-bold text-blue-800">شهر {receiptData.month} / {receiptData.year}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">الصافي المنصرف:</span>
