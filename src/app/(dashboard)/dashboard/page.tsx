@@ -86,7 +86,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-xl md:text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-          <LayoutDashboard className="w-7 h-7 text-elhoot-500" />
+          <LayoutDashboard className="w-7 h-7 text-blue-800" />
           <span>الرئيسية</span>
           <span className="text-xs md:text-sm font-normal text-gray-500 mr-1">
             ({new Date().toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })})

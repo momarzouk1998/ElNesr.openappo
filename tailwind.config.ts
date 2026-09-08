@@ -10,13 +10,25 @@ const config: Config = {
     extend: {
       colors: {
         // 🟦 اللون الرئيسي — شركة النسر (Brand: Electric Navy #0F4185)
-        elhoot: {
+        elnesr: {
           50:  "#eef4ff",
           100: "#dbe8fe",
           200: "#bfd7fe",
           300: "#93bbfd",
           400: "#609afa",
           500: "#0f4185",  // ← PRIMARY ELECTRIC NAVY
+          600: "#002b61",
+          700: "#00204a",
+          800: "#001735",
+          900: "#000e22",
+        },
+        elhoot: {
+          50:  "#eef4ff",
+          100: "#dbe8fe",
+          200: "#bfd7fe",
+          300: "#93bbfd",
+          400: "#609afa",
+          500: "#0f4185",
           600: "#002b61",
           700: "#00204a",
           800: "#001735",

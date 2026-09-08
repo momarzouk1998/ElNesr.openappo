@@ -14,7 +14,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("elhoot_identifier");
+    const saved = localStorage.getItem("elnesr_identifier");
     if (saved) { setIdentifier(saved); setRemember(true); }
   }, []);
 
@@ -38,8 +38,8 @@ function LoginForm() {
         setError(`❌ ${json?.error?.message || "بيانات الدخول غير صحيحة"}`);
         return;
       }
-      if (remember) localStorage.setItem("elhoot_identifier", identifier);
-      else localStorage.removeItem("elhoot_identifier");
+      if (remember) localStorage.setItem("elnesr_identifier", identifier);
+      else localStorage.removeItem("elnesr_identifier");
       const redirect = searchParams.get("redirect") || "/dashboard";
       router.push(redirect);
       router.refresh();
@@ -52,7 +52,7 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-grid">
-      <div className="absolute inset-0 bg-gradient-to-br from-elhoot-500/10 via-white to-amber-500/10 -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-white to-amber-500/10 -z-10" />
 
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
@@ -60,7 +60,7 @@ function LoginForm() {
             <Image src="/logo.png" alt="شركة النسر" width={100} height={100} className="rounded-xl object-contain" priority />
           </div>
           <h1 className="text-3xl font-extrabold text-slate-800">شركة النسر</h1>
-          <p className="text-sm text-elhoot-600 font-bold mt-1">El Hoot Electrical Systems</p>
+          <p className="text-sm text-blue-800 font-bold mt-1">El Nesr Electrical Systems</p>
           <p className="text-gray-600 mt-2 text-sm">لتجارة وتوزيع الأدوات واللوحات الكهربائية بالجملة</p>
         </div>
 
@@ -74,8 +74,8 @@ function LoginForm() {
                 type="text"
                 value={identifier}
                 onChange={e => setIdentifier(e.target.value)}
-                placeholder="01002082609"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-elhoot-500/30 focus:border-elhoot-500 text-left font-mono"
+                placeholder="01009328799"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 text-left font-mono"
                 dir="ltr"
                 autoComplete="tel"
                 required
@@ -90,7 +90,7 @@ function LoginForm() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••"
-                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-elhoot-500/30 focus:border-elhoot-500"
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600"
                   autoComplete="current-password"
                   required
                 />
@@ -101,7 +101,7 @@ function LoginForm() {
             </div>
 
             <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} className="w-4 h-4 rounded accent-elhoot-500" />
+              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} className="w-4 h-4 rounded accent-blue-700" />
               <span className="text-sm text-gray-700">تذكر بياناتي</span>
             </label>
 
@@ -115,7 +115,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-elhoot-500 hover:bg-elhoot-600 text-white font-bold py-3 rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? (<><span className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" /> جاري الدخول...</>) : "دخول النظام"}
             </button>
@@ -123,13 +123,13 @@ function LoginForm() {
 
           <div className="mt-6 pt-4 border-t border-gray-100 text-center">
             <p className="text-xs text-gray-500 leading-relaxed">
-              هذا النظام مخصص لـ شركة النسر للأدوات الكهربائية.
+              هذا النظام مخصص لـ شركة النسر للأدوات واللوحات الكهربائية.
             </p>
           </div>
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-4">
-          شركة النسر للأدوات الكهربائية © {new Date().getFullYear()}
+          شركة النسر للأدوات واللوحات الكهربائية © {new Date().getFullYear()}
         </p>
       </div>
     </div>

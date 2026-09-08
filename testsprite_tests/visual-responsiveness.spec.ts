@@ -10,13 +10,13 @@ test.beforeAll(() => {
   }
 });
 
-test("Visual responsiveness of El Hoot Sidebar and Dashboard", async ({ page }) => {
+test("Visual responsiveness of El Nesr Sidebar and Dashboard", async ({ page }) => {
   // 1. Visit Login
   await page.goto("https://elnesr.openappo.com/login");
   await expect(page).toHaveTitle(/شركة النسر/);
 
   // 2. Perform Login
-  await page.fill('input[type="text"]', "01002082609");
+  await page.fill('input[type="text"]', "01009328799");
   await page.fill('input[type="password"]', "123456");
   await page.click('button[type="submit"]');
 

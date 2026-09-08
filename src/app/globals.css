@@ -146,10 +146,22 @@
   --color-black: #000000;
 
   /* ================================================================
-     Brand Colors — El Hoot
+     Brand Colors — El Nesr
      ================================================================ */
 
   /* 🟦 Brand Primary — Electric Navy #0f4185 */
+  --color-elnesr-50:  #eef4ff;
+  --color-elnesr-100: #dbe8fe;
+  --color-elnesr-200: #bfd7fe;
+  --color-elnesr-300: #93bbfd;
+  --color-elnesr-400: #609afa;
+  --color-elnesr-500: #0f4185;
+  --color-elnesr-600: #002b61;
+  --color-elnesr-700: #00204a;
+  --color-elnesr-800: #001735;
+  --color-elnesr-900: #000e22;
+
+  /* Backward Compatibility */
   --color-elhoot-50:  #eef4ff;
   --color-elhoot-100: #dbe8fe;
   --color-elhoot-200: #bfd7fe;
