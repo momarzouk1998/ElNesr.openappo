@@ -19,10 +19,10 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "شركة الحوت للأدوات الكهربائية - نظام الإدارة",
-  description: "نظام إدارة شركة الحوت لتجارة وتوزيع الأدوات واللوحات الكهربائية. إدارة المخزون، المبيعات، كشوفات الحساب، والتقارير المالية.",
+  title: "شركة النسر للأدوات الكهربائية - نظام الإدارة",
+  description: "نظام إدارة شركة النسر لتجارة وتوزيع الأدوات واللوحات الكهربائية. إدارة المخزون، المبيعات، كشوفات الحساب، والتقارير المالية.",
   manifest: "/manifest.json",
-  appleWebApp: { capable: true, title: "الحوت", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "النسر", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
   icons: {
     icon: [
@@ -73,7 +73,7 @@ async function getInitialUser(): Promise<CurrentProfile | null> {
 async function checkSubscription(): Promise<{ active: boolean; status?: string; daysLeft?: number; graceDaysLeft?: number; message?: string }> {
   try {
     const adminUrl = process.env.ADMIN_API_URL || "https://admin.openappo.com";
-    const systemName = process.env.SYSTEM_NAME || "elhoot";
+    const systemName = process.env.SYSTEM_NAME || "elnesr";
 
     const res = await fetch(`${adminUrl}/api/subscription/verify?system=${systemName}`, {
       cache: "no-store", // Instant realtime checks on every refresh

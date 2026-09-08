@@ -12,7 +12,7 @@ export default function PrintActions({
   downloadPdf = false,
   backLink = "/sales",
   backLabel = "↩️ عودة",
-  fileName = "فاتورة شركة الحوت",
+  fileName = "فاتورة شركة النسر",
   targetId = "statement",
   invoiceId,
   customerId,

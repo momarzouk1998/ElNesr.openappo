@@ -127,19 +127,19 @@ async function clearData() {
     TRUNCATE TABLE
       elnazlawy.customer_payments,
       elnazlawy.supplier_payments,
-      elhoot.inventory,
-      elhoot.products,
-      elhoot.customers,
-      elhoot.suppliers,
+      elnesr.inventory,
+      elnesr.products,
+      elnesr.customers,
+      elnesr.suppliers,
       elnazlawy.treasury_transactions,
       elnazlawy.treasuries,
-      elhoot.stores,
+      elnesr.stores,
       elnazlawy.expenses,
       elnazlawy.checks,
       elnazlawy.sales_invoice_items,
-      elhoot.sales_invoices,
+      elnesr.sales_invoices,
       elnazlawy.purchase_invoice_items,
-      elhoot.purchase_invoices,
+      elnesr.purchase_invoices,
       elnazlawy.stock_transfers,
       elnazlawy.product_price_history,
       elnazlawy.audit_log
@@ -166,7 +166,7 @@ async function importData() {
     console.log('🏢 Creating default store...');
     const storeId = randomUUID();
     await runQuery(
-      `INSERT INTO elhoot.stores (id, name, type, description, treasury_id, is_active, created_at, updated_at)
+      `INSERT INTO elnesr.stores (id, name, type, description, treasury_id, is_active, created_at, updated_at)
        VALUES ($1::uuid, $2, $3, $4, $5::uuid, $6, NOW(), NOW())`,
       [storeId, 'المخزن الرئيسي', 'store', 'المخزن الرئيسي', treasuryId, true]
     );
@@ -186,7 +186,7 @@ async function importData() {
 
       const productId = randomUUID();
       await runQuery(
-        `INSERT INTO elhoot.products (
+        `INSERT INTO elnesr.products (
           id, legacy_id, name, description, category, unit, units_per_carton,
           default_sale_price, last_purchase_price, reorder_level, is_active, created_at, updated_at
         ) VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())`,
@@ -195,7 +195,7 @@ async function importData() {
 
       if (openingBalance > 0) {
         await runQuery(
-          `INSERT INTO elhoot.inventory (id, product_id, store_id, current_stock, opening_balance, reorder_level, created_at, updated_at)
+          `INSERT INTO elnesr.inventory (id, product_id, store_id, current_stock, opening_balance, reorder_level, created_at, updated_at)
            VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, NOW(), NOW())`,
           [randomUUID(), productId, storeId, openingBalance, openingBalance, 5]
         );
@@ -228,7 +228,7 @@ async function importData() {
 
       const customerId = randomUUID();
       await runQuery(
-        `INSERT INTO elhoot.customers (
+        `INSERT INTO elnesr.customers (
           id, legacy_id, name, phone, whatsapp, address, location, balance, opening_balance, route_days, is_active, created_at, updated_at
         ) VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())`,
         [customerId, originalId, name, getValue(row, ['Phone C', 'Phone']) || null, getValue(row, ['Whatsapp C', 'Whatsapp']) || null, getValue(row, ['Address C', 'Address']) || null, getValue(row, ['Location C', 'Location']) || null, currentBalance, openingBalance, routeDays, true]
@@ -258,7 +258,7 @@ async function importData() {
 
       const supplierId = randomUUID();
       await runQuery(
-        `INSERT INTO elhoot.suppliers (
+        `INSERT INTO elnesr.suppliers (
           id, legacy_id, name, phone, address, balance, opening_balance, is_active, created_at, updated_at
         ) VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
         [supplierId, originalId, name, getValue(row, ['Phone SU', 'Phone']) || null, getValue(row, ['Address SU', 'Address']) || null, currentBalance, openingBalance, true]

@@ -175,13 +175,13 @@ export default async function SupplierPaymentReceiptPage({
             >
               <img
                 src={LOGO_BASE64}
-                alt="شركة الحوت"
+                alt="شركة النسر"
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             </div>
             <div>
               <div style={{ fontSize: '1.35rem', fontWeight: 900, color: C.darkNavy, lineHeight: 1.15 }}>
-                شركة الحوت
+                شركة النسر
               </div>
               <div style={{ fontSize: '0.85rem', fontWeight: 700, color: C.purple, marginTop: '3px' }}>
                 للأدوات واللوحات الكهربائية
@@ -411,7 +411,7 @@ export default async function SupplierPaymentReceiptPage({
           }}
         >
           <div style={{ fontWeight: 800, color: C.darkNavy, marginBottom: '3px', fontSize: '0.88rem' }}>
-            شركة الحوت للأدوات واللوحات الكهربائية • تجارة وتوزيع الجملة
+            شركة النسر للأدوات واللوحات الكهربائية • تجارة وتوزيع الجملة
           </div>
           <div style={{ fontWeight: 600, color: C.muted, fontSize: '0.78rem' }}>
             شكراً لتعاملكم معنا ▪ للإدارة واستفسارات المشتريات يرجى التواصل عبر الواتساب أو الهاتف

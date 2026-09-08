@@ -157,14 +157,14 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   if (showCost) {
     const inv = await prisma.$queryRaw<{ total: number }[]>`
       SELECT COALESCE(SUM(p.last_purchase_price * i.current_stock), 0)::numeric as total
-      FROM elhoot.inventory i
-      JOIN elhoot.products p ON p.id = i.product_id
+      FROM elnesr.inventory i
+      JOIN elnesr.products p ON p.id = i.product_id
       WHERE p.is_active = true AND i.current_stock > 0
     `;
     inventoryValue = Number(inv[0]?.total || 0);
   }
   const lowStock = await prisma.$queryRaw<{ count: bigint }[]>`
-    SELECT COUNT(*)::bigint as count FROM elhoot.inventory
+    SELECT COUNT(*)::bigint as count FROM elnesr.inventory
     WHERE current_stock <= reorder_level AND current_stock > 0
   `;
   lowStockCount = Number(lowStock[0]?.count || 0);

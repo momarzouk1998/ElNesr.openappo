@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // 🟦 اللون الرئيسي — شركة الحوت (Brand: Electric Navy #0F4185)
+        // 🟦 اللون الرئيسي — شركة النسر (Brand: Electric Navy #0F4185)
         elhoot: {
           50:  "#eef4ff",
           100: "#dbe8fe",

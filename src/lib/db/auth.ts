@@ -4,7 +4,7 @@ import { SignJWT, jwtVerify } from 'jose';
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'dev-secret-change-in-production'
 );
-export const COOKIE_NAME = 'elhoot_session';
+export const COOKIE_NAME = 'elnesr_session';
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);

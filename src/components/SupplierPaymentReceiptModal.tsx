@@ -61,7 +61,7 @@ export default function SupplierPaymentReceiptModal({ paymentId, onClose }: Supp
             if (typeof (navigator as any).canShare === "function" && (navigator as any).canShare({ files: [file] })) {
               await navigator.share({
                 files: [file],
-                title: "إيصال سداد شركة الحوت",
+                title: "إيصال سداد شركة النسر",
               });
               return;
             }
@@ -77,7 +77,7 @@ export default function SupplierPaymentReceiptModal({ paymentId, onClose }: Supp
 
       await downloadCanvasAsPng(canvas, `إيصال_سداد_${supplierName}.png`);
 
-      const receiptText = `مرحباً أستاذ ${supplierName}، مرفق إيصال سداد شركة الحوت بقيمة ${formatEGP(paid)} ج (المتبقي: ${formatEGP(newBal)} ج)`;
+      const receiptText = `مرحباً أستاذ ${supplierName}، مرفق إيصال سداد شركة النسر بقيمة ${formatEGP(paid)} ج (المتبقي: ${formatEGP(newBal)} ج)`;
       window.location.href = `whatsapp://send?text=${encodeURIComponent(receiptText)}`;
     } catch (err) {
       console.error(err);
@@ -130,10 +130,10 @@ export default function SupplierPaymentReceiptModal({ paymentId, onClose }: Supp
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-12 h-12 rounded-xl p-1 shrink-0 flex items-center justify-center" style={{ backgroundColor: "#ffffff", border: "2px solid #7c3aed", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-                    <img src="/logo.png" alt="شركة الحوت" className="w-full h-full object-contain" />
+                    <img src="/logo.png" alt="شركة النسر" className="w-full h-full object-contain" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-black text-base leading-tight" style={{ color: "#0f172a" }}>شركة الحوت</h3>
+                    <h3 className="font-black text-base leading-tight" style={{ color: "#0f172a" }}>شركة النسر</h3>
                     <p className="text-xs font-bold" style={{ color: "#64748b" }}>للأدوات واللوحات الكهربائية</p>
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function SupplierPaymentReceiptModal({ paymentId, onClose }: Supp
 
             {/* Footer note */}
             <div className="pt-2 text-center font-semibold" style={{ borderTop: "1px solid #f1f5f9", color: "#94a3b8", fontSize: "11px" }}>
-              شكراً لتعاملكم معنا ▪ شركة الحوت للأدوات الكهربائية
+              شكراً لتعاملكم معنا ▪ شركة النسر للأدوات الكهربائية
             </div>
           </div>
         </div>

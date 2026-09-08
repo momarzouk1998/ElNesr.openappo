@@ -184,15 +184,15 @@ Log-Info "التحقق من نتائج المسح..."
 $verifyCmd = @"
 docker exec $CONTAINER_NAME psql -U $DB_USER -d $DB_NAME -t -c "
 SELECT 
-  'Users' as t, COUNT(*)::text FROM elhoot.users
-UNION ALL SELECT 'Customers', COUNT(*)::text FROM elhoot.customers
-UNION ALL SELECT 'Suppliers', COUNT(*)::text FROM elhoot.suppliers
-UNION ALL SELECT 'Products', COUNT(*)::text FROM elhoot.products
-UNION ALL SELECT 'Sales Invoices', COUNT(*)::text FROM elhoot.sales_invoices
-UNION ALL SELECT 'Purchase Invoices', COUNT(*)::text FROM elhoot.purchase_invoices
+  'Users' as t, COUNT(*)::text FROM elnesr.users
+UNION ALL SELECT 'Customers', COUNT(*)::text FROM elnesr.customers
+UNION ALL SELECT 'Suppliers', COUNT(*)::text FROM elnesr.suppliers
+UNION ALL SELECT 'Products', COUNT(*)::text FROM elnesr.products
+UNION ALL SELECT 'Sales Invoices', COUNT(*)::text FROM elnesr.sales_invoices
+UNION ALL SELECT 'Purchase Invoices', COUNT(*)::text FROM elnesr.purchase_invoices
 UNION ALL SELECT 'Expenses', COUNT(*)::text FROM elnazlawy.expenses
 UNION ALL SELECT 'Treasuries', COUNT(*)::text FROM elnazlawy.treasuries
-UNION ALL SELECT 'Stores', COUNT(*)::text FROM elhoot.stores
+UNION ALL SELECT 'Stores', COUNT(*)::text FROM elnesr.stores
 ORDER BY 1;
 "@
 

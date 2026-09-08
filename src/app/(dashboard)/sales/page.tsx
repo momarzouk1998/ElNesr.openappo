@@ -583,7 +583,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
       const cleanPhone = customerPhone ? String(customerPhone).replace(/\D/g, "") : "";
       const formattedPhone = cleanPhone.startsWith("0") ? ("2" + cleanPhone) : cleanPhone;
       const customerName = invData.customer?.name || "العميل المحترم";
-      const invoiceText = "مرحباً بك أستاذ " + customerName + "،\nمرفق فاتورة شركة الحوت رقم #" + invData.invoice_number + "\nالمبلغ المطلوب: " + formatEGP(currentInvoiceTotal) + " ج\nشكراً لتعاملكم معنا.";
+      const invoiceText = "مرحباً بك أستاذ " + customerName + "،\nمرفق فاتورة شركة النسر رقم #" + invData.invoice_number + "\nالمبلغ المطلوب: " + formatEGP(currentInvoiceTotal) + " ج\nشكراً لتعاملكم معنا.";
 
       // 1. Native Image Share (Lets user pick ANY WhatsApp chat directly)
       if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
@@ -594,7 +594,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
             if (typeof (navigator as any).canShare === "function" && (navigator as any).canShare({ files: [file] })) {
               await navigator.share({
                 files: [file],
-                title: "فاتورة شركة الحوت #" + invData.invoice_number,
+                title: "فاتورة شركة النسر #" + invData.invoice_number,
               });
               return;
             }
@@ -615,7 +615,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
 
       // 2. Fallback: Automatically download image & open WhatsApp app directly
       const link = document.createElement("a");
-      link.download = `فاتورة_شركة_الحوت_${invData.invoice_number}.png`;
+      link.download = `فاتورة_شركة_النسر_${invData.invoice_number}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
 
@@ -636,7 +636,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
       setDownloadingImage(true);
       const canvas = await captureElementToCanvas(element, { scale: 2.5 });
       const link = document.createElement("a");
-      link.download = "فاتورة شركة الحوت - #" + invData.invoice_number + ".png";
+      link.download = "فاتورة شركة النسر - #" + invData.invoice_number + ".png";
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
@@ -663,7 +663,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
       const imgWidth = printableWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
-      pdf.save("فاتورة شركة الحوت - #" + invData.invoice_number + ".pdf");
+      pdf.save("فاتورة شركة النسر - #" + invData.invoice_number + ".pdf");
     } catch (err) {
       console.error(err);
       alert("❌ حدث خطأ أثناء تحميل ملف PDF");
@@ -825,13 +825,13 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
                   >
                     <img
                       src="/logo.png"
-                      alt="شركة الحوت"
+                      alt="شركة النسر"
                       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                   </div>
                   <div>
                     <div style={{ fontSize: '1.35rem', fontWeight: 900, color: C.darkNavy, lineHeight: 1.15 }}>
-                      شركة الحوت
+                      شركة النسر
                     </div>
                     <div style={{ fontSize: '0.82rem', fontWeight: 700, color: C.orange, marginTop: '2px' }}>
                       للأدوات واللوحات الكهربائية
@@ -1078,7 +1078,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
                 }}
               >
                 <div style={{ fontWeight: 800, color: C.darkNavy, marginBottom: '1px' }}>
-                  شركة الحوت للأدوات واللوحات الكهربائية ▪ تجارة وتوزيع الجملة
+                  شركة النسر للأدوات واللوحات الكهربائية ▪ تجارة وتوزيع الجملة
                 </div>
                 <div>شكراً لتعاملكم معنا ▪ للإدارة والاستفسارات يرجى التواصل عبر الواتساب أو الهاتف</div>
               </div>

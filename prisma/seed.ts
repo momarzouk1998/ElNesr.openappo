@@ -1,5 +1,5 @@
 // =============================================
-// EL HOOT — Database Seed (شركة الحوت للأدوات الكهربائية)
+// EL NESR — Database Seed (شركة النسر للأدوات الكهربائية)
 // Run: npm run db:seed
 // Creates: admin/owner user, 2 stores, 2 treasuries, mock products, customers, suppliers
 // =============================================
@@ -9,33 +9,36 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding EL HOOT database...');
+  console.log('🌱 Seeding EL NESR database...');
 
   // Ensure schema exists
-  await prisma.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS elhoot;`);
+  await prisma.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS elnesr;`);
 
   // Clean business data while preserving existing users
   console.log('🧹 Cleaning business data...');
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE 
-      elhoot.audit_log, 
-      elhoot.treasury_transactions, 
-      elhoot.customer_payments, 
-      elhoot.supplier_payments, 
-      elhoot.checks, 
-      elhoot.expenses, 
-      elhoot.sales_invoice_items, 
-      elhoot.sales_invoices, 
-      elhoot.purchase_invoice_items, 
-      elhoot.purchase_invoices, 
-      elhoot.stock_transfers, 
-      elhoot.product_price_history, 
-      elhoot.inventory, 
-      elhoot.products, 
-      elhoot.customers, 
-      elhoot.suppliers, 
-      elhoot.stores, 
-      elhoot.treasuries 
+      elnesr.audit_log, 
+      elnesr.treasury_transactions, 
+      elnesr.customer_payments, 
+      elnesr.supplier_payments, 
+      elnesr.checks, 
+      elnesr.expenses, 
+      elnesr.sales_invoice_items, 
+      elnesr.sales_invoices, 
+      elnesr.purchase_invoice_items, 
+      elnesr.purchase_invoices, 
+      elnesr.stock_transfers, 
+      elnesr.product_price_history, 
+      elnesr.inventory, 
+      elnesr.products, 
+      elnesr.customers, 
+      elnesr.suppliers, 
+      elnesr.stores, 
+      elnesr.treasuries,
+      elnesr.employee_advances,
+      elnesr.salary_payments,
+      elnesr.employees
     RESTART IDENTITY CASCADE;
   `);
 
@@ -44,7 +47,7 @@ async function main() {
   // === Users ===
   console.log('👥 Creating default users...');
   const userDefinitions = [
-    { username: 'admin',     full_name: 'إبراهيم الذيداني', phone: '01002082609', role: 'admin',   can_see_cost: true },
+    { username: 'admin',     full_name: 'إبراهيم - شركة النسر', phone: '01009328799', role: 'admin',   can_see_cost: true },
     { username: 'openapps',  full_name: 'الدعم الفني OPEN APPS', phone: '01558282760', role: 'admin',   can_see_cost: true },
   ];
 
@@ -85,8 +88,8 @@ async function main() {
   // === Treasuries ===
   console.log('🏦 Creating treasuries...');
   await Promise.all([
-    prisma.treasuries.create({ data: { name: 'الخزينة الرئيسية', type: 'رئيسية', opening_balance: 50000, current_balance: 50000, assigned_user_id: owner.id } }),
-    prisma.treasuries.create({ data: { name: 'خزينة المبيعات اليومية', type: 'إدارة', opening_balance: 0, current_balance: 0 } }),
+    prisma.treasuries.create({ data: { name: 'الخزينة النقدية الرئيسية', type: 'نقدية', opening_balance: 0, current_balance: 0, assigned_user_id: owner.id } }),
+    prisma.treasuries.create({ data: { name: 'خزينة فودافون كاش', type: 'فودافون كاش', opening_balance: 0, current_balance: 0 } }),
   ]);
 
   // === Mock Customers ===
@@ -145,7 +148,32 @@ async function main() {
     });
   }
 
-  console.log('✅ Seed completed successfully for El Hoot system!');
+  // === Mock Employees (الموظفين) ===
+  console.log('👷 Creating mock employees...');
+  const [emp1, emp2] = await Promise.all([
+    prisma.employees.create({
+      data: {
+        name: 'أحمد محمود الغواص',
+        phone: '01099887766',
+        job_title: 'فني تجميع لوحات',
+        basic_salary: 6500,
+        hire_date: new Date('2026-01-01'),
+        is_active: true,
+      },
+    }),
+    prisma.employees.create({
+      data: {
+        name: 'محمد عبد الله',
+        phone: '01122334455',
+        job_title: 'مسؤول مخزن وتجهيز',
+        basic_salary: 5000,
+        hire_date: new Date('2026-02-15'),
+        is_active: true,
+      },
+    }),
+  ]);
+
+  console.log('✅ Seed completed successfully for El Nesr system!');
 }
 
 main()

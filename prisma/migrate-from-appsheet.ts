@@ -122,7 +122,7 @@ async function main() {
   if (APPLY && !RESUME) {
     console.log("🧹 مسح البيانات الحالية (TRUNCATE)...");
     await prisma.$executeRawUnsafe(
-      `TRUNCATE TABLE elnazlawy.audit_log, elnazlawy.treasury_transactions, elnazlawy.product_price_history, elnazlawy.customer_payments, elnazlawy.supplier_payments, elnazlawy.expenses, elnazlawy.purchase_invoice_items, elhoot.purchase_invoices, elnazlawy.sales_invoice_items, elhoot.sales_invoices, elnazlawy.stock_transfers, elhoot.inventory, elhoot.products, elhoot.customers, elhoot.suppliers, elnazlawy.treasuries, elhoot.stores, elhoot.users RESTART IDENTITY CASCADE;`
+      `TRUNCATE TABLE elnazlawy.audit_log, elnazlawy.treasury_transactions, elnazlawy.product_price_history, elnazlawy.customer_payments, elnazlawy.supplier_payments, elnazlawy.expenses, elnazlawy.purchase_invoice_items, elnesr.purchase_invoices, elnazlawy.sales_invoice_items, elnesr.sales_invoices, elnazlawy.stock_transfers, elnesr.inventory, elnesr.products, elnesr.customers, elnesr.suppliers, elnazlawy.treasuries, elnesr.stores, elnesr.users RESTART IDENTITY CASCADE;`
     );
   }
 

@@ -195,10 +195,10 @@ export default async function SupplierStatementPage({ params }: { params: Promis
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: `2px solid ${C.orange}`,
               width: '60px', height: '60px',
             }}>
-              <img src={LOGO_BASE64} alt="شركة الحوت" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} />
+              <img src={LOGO_BASE64} alt="شركة النسر" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} />
             </div>
             <div>
-              <div style={{ fontSize: '1.35rem', fontWeight: 900, color: C.gray, lineHeight: 1.2 }}>شركة الحوت</div>
+              <div style={{ fontSize: '1.35rem', fontWeight: 900, color: C.gray, lineHeight: 1.2 }}>شركة النسر</div>
               <div style={{ fontSize: '0.75rem', color: C.muted, fontWeight: 400 }}>للأدوات واللوحات الكهربائية ▪ تجارة وتوزيع الجملة</div>
             </div>
           </div>
@@ -350,7 +350,7 @@ export default async function SupplierStatementPage({ params }: { params: Promis
           backgroundColor: C.lightBg, padding: '1rem', borderTop: `1px solid ${C.border}`,
           textAlign: 'center', color: '#666', fontSize: '0.82rem',
         }}>
-          <p style={{ fontWeight: 700, color: '#2c3e50', marginBottom: '4px' }}>شكراً لتعاملكم معنا في شركة الحوت</p>
+          <p style={{ fontWeight: 700, color: '#2c3e50', marginBottom: '4px' }}>شكراً لتعاملكم معنا في شركة النسر</p>
           <p style={{ margin: 0 }}>شكراً لتعاملكم معنا ▪ للإدارة والاستفسارات يرجى التواصل عبر الواتساب أو الهاتف</p>
         </div>
       </div>

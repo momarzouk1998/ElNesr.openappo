@@ -12,8 +12,8 @@ test.beforeAll(() => {
 
 test("Visual responsiveness of El Hoot Sidebar and Dashboard", async ({ page }) => {
   // 1. Visit Login
-  await page.goto("https://elhoot.openappo.com/login");
-  await expect(page).toHaveTitle(/شركة الحوت/);
+  await page.goto("https://elnesr.openappo.com/login");
+  await expect(page).toHaveTitle(/شركة النسر/);
 
   // 2. Perform Login
   await page.fill('input[type="text"]', "01002082609");

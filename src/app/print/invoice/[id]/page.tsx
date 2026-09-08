@@ -192,13 +192,13 @@ export default async function InvoicePrintPage({
             >
               <img
                 src={LOGO_BASE64}
-                alt="شركة الحوت"
+                alt="شركة النسر"
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             </div>
             <div>
               <div style={{ fontSize: '1.45rem', fontWeight: 900, color: C.darkNavy, lineHeight: 1.15 }}>
-                شركة الحوت
+                شركة النسر
               </div>
               <div style={{ fontSize: '0.85rem', fontWeight: 700, color: C.orange, marginTop: '3px' }}>
                 للأدوات واللوحات الكهربائية
@@ -452,7 +452,7 @@ export default async function InvoicePrintPage({
           }}
         >
           <div style={{ fontWeight: 800, color: C.darkNavy, marginBottom: '3px', fontSize: '0.85rem' }}>
-            شركة الحوت للأدوات واللوحات الكهربائية • تجارة وتوزيع الجملة
+            شركة النسر للأدوات واللوحات الكهربائية • تجارة وتوزيع الجملة
           </div>
           <div style={{ fontWeight: 600, color: C.muted, fontSize: '0.78rem' }}>
             شكراً لتعاملكم معنا • للإدارة والاستفسارات يرجى التواصل عبر الواتساب أو الهاتف
@@ -464,7 +464,7 @@ export default async function InvoicePrintPage({
         autoprint={autoprint}
         downloadImage={downloadImage}
         downloadPdf={downloadPdf}
-        fileName={`فاتورة شركة الحوت - ${invoice.invoice_number}`}
+        fileName={`فاتورة شركة النسر - ${invoice.invoice_number}`}
         targetId="statement"
         invoiceId={invoice.id}
         customerId={invoice.customer?.id}

@@ -122,7 +122,7 @@ export default async function PrintInventoryReportPage() {
           gap: '1rem',
         }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>شركة الحوت</h1>
+            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>شركة النسر</h1>
             <p style={{ margin: '4px 0 0', opacity: 0.9, fontSize: '1rem', fontWeight: 600 }}>
               📦 تقرير جرد وإحصائيات المخازن الشامل
             </p>
@@ -326,7 +326,7 @@ export default async function PrintInventoryReportPage() {
           color: '#666',
           fontSize: '0.82rem',
         }}>
-          <p style={{ fontWeight: 700, color: '#2c3e50', marginBottom: '4px' }}>شكراً لتعاملكم معنا في شركة الحوت</p>
+          <p style={{ fontWeight: 700, color: '#2c3e50', marginBottom: '4px' }}>شكراً لتعاملكم معنا في شركة النسر</p>
           <p style={{ margin: 0 }}>شكراً لتعاملكم معنا ▪ للإدارة والاستفسارات يرجى التواصل عبر الواتساب أو الهاتف</p>
         </div>
       </div>

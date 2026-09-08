@@ -53,7 +53,7 @@ export default function Sidebar({ profile }: { profile: CurrentProfile }) {
 
   // Load sidebar collapse preference
   useEffect(() => {
-    const saved = localStorage.getItem("elhoot_sidebar_collapsed");
+    const saved = localStorage.getItem("elnesr_sidebar_collapsed");
     if (saved === "true") setCollapsed(true);
   }, []);
 
@@ -122,7 +122,7 @@ export default function Sidebar({ profile }: { profile: CurrentProfile }) {
   const toggleCollapse = () => {
     const nextState = !collapsed;
     setCollapsed(nextState);
-    localStorage.setItem("elhoot_sidebar_collapsed", String(nextState));
+    localStorage.setItem("elnesr_sidebar_collapsed", String(nextState));
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -161,9 +161,9 @@ export default function Sidebar({ profile }: { profile: CurrentProfile }) {
         >
           {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
-        <div className="font-extrabold text-sm truncate flex-1 text-center px-4">شركة الحوت للأدوات الكهربائية</div>
+        <div className="font-extrabold text-sm truncate flex-1 text-center px-4">شركة النسر للأدوات الكهربائية</div>
         <div className="w-11 h-11 rounded-xl bg-white p-1 border-2 border-amber-500 shrink-0 shadow-sm flex items-center justify-center overflow-hidden">
-          <img src="/logo.png?v=5" alt="شركة الحوت" className="w-full h-full object-contain" />
+          <img src="/logo.png?v=5" alt="شركة النسر" className="w-full h-full object-contain" />
         </div>
       </header>
 
@@ -183,10 +183,10 @@ export default function Sidebar({ profile }: { profile: CurrentProfile }) {
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-11 h-11 rounded-xl bg-white p-1 border-2 border-amber-500 shrink-0 shadow-sm flex items-center justify-center overflow-hidden">
-                  <img src="/logo.png?v=5" alt="شركة الحوت" className="w-full h-full object-contain" />
+                  <img src="/logo.png?v=5" alt="شركة النسر" className="w-full h-full object-contain" />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-extrabold text-sm leading-tight truncate">شركة الحوت</div>
+                  <div className="font-extrabold text-sm leading-tight truncate">شركة النسر</div>
                   <div className="text-[10px] text-blue-200 font-medium truncate">
                     {profile.full_name} • {ROLE_LABELS[profile.role]}
                   </div>
@@ -242,11 +242,11 @@ export default function Sidebar({ profile }: { profile: CurrentProfile }) {
           <div className="p-4 border-b-4 border-amber-500 flex items-center justify-between gap-3 min-w-0">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-white p-1 border-2 border-amber-500 shrink-0 shadow-sm flex items-center justify-center overflow-hidden">
-                <img src="/logo.png?v=5" alt="شركة الحوت" className="w-full h-full object-contain" />
+                <img src="/logo.png?v=5" alt="شركة النسر" className="w-full h-full object-contain" />
               </div>
               {!collapsed && (
                 <div className="min-w-0 animate-fade-in">
-                  <div className="font-extrabold text-sm leading-tight truncate">شركة الحوت</div>
+                  <div className="font-extrabold text-sm leading-tight truncate">شركة النسر</div>
                   <div className="text-[10px] text-amber-300 font-bold truncate">
                     {profile ? profile.full_name : "للأدوات الكهربائية"}
                   </div>

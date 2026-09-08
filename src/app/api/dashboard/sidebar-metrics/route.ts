@@ -10,7 +10,7 @@ export async function GET() {
 
     const [lowStockCount, todaySalesCount] = await Promise.all([
       prisma.$queryRaw<{ count: bigint }[]>`
-        SELECT COUNT(*)::bigint as count FROM elhoot.inventory
+        SELECT COUNT(*)::bigint as count FROM elnesr.inventory
         WHERE current_stock <= reorder_level AND current_stock > 0
       `.then(r => Number(r[0]?.count || 0)),
       prisma.sales_invoices.count({

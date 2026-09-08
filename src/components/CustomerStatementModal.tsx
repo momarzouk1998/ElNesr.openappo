@@ -50,7 +50,7 @@ export default function CustomerStatementModal({ customerId, onClose }: Customer
       setSharingWhatsapp(true);
       const canvas = await captureElementToCanvas(element, { scale: 2.5, renderWidth: 800 });
 
-      const receiptText = `مرحباً بك أستاذ ${customerName}،\nمرفق كشف حساب شركة الحوت للأدوات الكهربائية.\nالمتبقي النهائي: ${formatEGP(finalBalance)} ج\nشكراً لتعاملكم معنا.`;
+      const receiptText = `مرحباً بك أستاذ ${customerName}،\nمرفق كشف حساب شركة النسر للأدوات الكهربائية.\nالمتبقي النهائي: ${formatEGP(finalBalance)} ج\nشكراً لتعاملكم معنا.`;
 
       // 1. Native Mobile Web Share API
       if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
@@ -61,7 +61,7 @@ export default function CustomerStatementModal({ customerId, onClose }: Customer
             if (typeof (navigator as any).canShare === "function" && (navigator as any).canShare({ files: [file] })) {
               await navigator.share({
                 files: [file],
-                title: "كشف حساب شركة الحوت",
+                title: "كشف حساب شركة النسر",
               });
               return;
             }
@@ -141,10 +141,10 @@ export default function CustomerStatementModal({ customerId, onClose }: Customer
             <div className="pb-4 flex items-center justify-between gap-3" style={{ borderBottom: "2px solid #f1f5f9" }}>
               <div className="flex items-center gap-3">
                 <div className="rounded-xl p-1 bg-white flex items-center justify-center shrink-0 shadow-sm" style={{ width: "56px", height: "56px", minWidth: "56px", minHeight: "56px", border: "2px solid #0284c7" }}>
-                  <img src="/logo.png" alt="شركة الحوت" style={{ width: "48px", height: "48px", minWidth: "48px", minHeight: "48px", maxWidth: "48px", maxHeight: "48px", objectFit: "contain", display: "block" }} />
+                  <img src="/logo.png" alt="شركة النسر" style={{ width: "48px", height: "48px", minWidth: "48px", minHeight: "48px", maxWidth: "48px", maxHeight: "48px", objectFit: "contain", display: "block" }} />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg leading-tight" style={{ color: "#0f172a" }}>شركة الحوت</h3>
+                  <h3 className="font-black text-lg leading-tight" style={{ color: "#0f172a" }}>شركة النسر</h3>
                   <p className="text-xs font-bold" style={{ color: "#0369a1" }}>للأدوات واللوحات الكهربائية ▪ تجارة وتوزيع الجملة</p>
                 </div>
               </div>
@@ -284,7 +284,7 @@ export default function CustomerStatementModal({ customerId, onClose }: Customer
 
             {/* Footer note */}
             <div className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-1 text-xs" style={{ borderTop: "1px solid #f1f5f9", color: "#64748b" }}>
-              <span className="font-bold" style={{ color: "#334155" }}>شركة الحوت للأدوات واللوحات الكهربائية</span>
+              <span className="font-bold" style={{ color: "#334155" }}>شركة النسر للأدوات واللوحات الكهربائية</span>
               <span style={{ fontSize: "11px", color: "#94a3b8" }}>شكراً لتعاملكم معنا ▪ للإدارة والاستفسارات يرجى التواصل عبر الواتساب أو الهاتف</span>
             </div>
           </div>

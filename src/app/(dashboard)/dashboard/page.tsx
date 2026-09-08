@@ -33,7 +33,7 @@ export default async function DashboardPage() {
     prisma.stores.count({ where: { is_active: true } }),
     // تحت الحد الأدنى
     prisma.$queryRaw<{ count: bigint }[]>`
-      SELECT COUNT(*)::bigint as count FROM elhoot.inventory
+      SELECT COUNT(*)::bigint as count FROM elnesr.inventory
       WHERE current_stock <= reorder_level AND current_stock > 0
     `,
     prisma.sales_invoices.aggregate({
@@ -59,8 +59,8 @@ export default async function DashboardPage() {
     canSeeCost(profile)
       ? prisma.$queryRaw<{ total: number }[]>`
           SELECT COALESCE(SUM(p.last_purchase_price * i.current_stock), 0)::numeric as total
-          FROM elhoot.inventory i
-          JOIN elhoot.products p ON p.id = i.product_id
+          FROM elnesr.inventory i
+          JOIN elnesr.products p ON p.id = i.product_id
           WHERE p.is_active = true AND i.current_stock > 0
         `.then(r => Number(r[0]?.total || 0))
       : Promise.resolve(0),

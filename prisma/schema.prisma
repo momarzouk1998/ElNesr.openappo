@@ -1,5 +1,5 @@
 // ========================================
-// Prisma Schema — ELHOOT (نظام النزلاوي)
+// Prisma Schema — ELNESR (نظام النزلاوي)
 // Migration from AppSheet → Next.js + PostgreSQL
 // Schema: elnazlawy (on shared DO Postgres, same as mazaya)
 // ========================================
@@ -13,7 +13,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["elhoot"]
+  schemas  = ["elnesr"]
 }
 
 // =======================================
@@ -51,7 +51,7 @@ model users {
   created_supplier_returns supplier_return_invoices[] @relation("SupplierReturnCreatedBy")
 
   @@map("users")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -80,7 +80,7 @@ model stores {
   transfers_to           stock_transfers[]        @relation("TransferToStore")
 
   @@map("stores")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -118,7 +118,7 @@ model products {
   supplier_return_items supplier_return_invoice_items[]
 
   @@map("products")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -143,7 +143,7 @@ model inventory {
 
   @@unique([product_id, store_id])
   @@map("inventory")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -176,7 +176,7 @@ model customers {
   return_invoices  customer_return_invoices[]
 
   @@map("customers")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -201,7 +201,7 @@ model suppliers {
   return_invoices   supplier_return_invoices[]
 
   @@map("suppliers")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -252,7 +252,7 @@ model sales_invoices {
   voids    sales_invoices[]      @relation("InvoiceVoid")
 
   @@map("sales_invoices")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -283,7 +283,7 @@ model sales_invoice_items {
   product products       @relation(fields: [product_id], references: [id])
 
   @@map("sales_invoice_items")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -311,7 +311,7 @@ model purchase_invoices {
   payments supplier_payments[]
 
   @@map("purchase_invoices")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -337,7 +337,7 @@ model purchase_invoice_items {
   store    stores?           @relation(fields: [store_id], references: [id])
 
   @@map("purchase_invoice_items")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -363,7 +363,7 @@ model customer_return_invoices {
   items    customer_return_invoice_items[]
 
   @@map("customer_return_invoices")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -384,7 +384,7 @@ model customer_return_invoice_items {
   product        products                 @relation(fields: [product_id], references: [id])
 
   @@map("customer_return_invoice_items")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -410,7 +410,7 @@ model supplier_return_invoices {
   items    supplier_return_invoice_items[]
 
   @@map("supplier_return_invoices")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -431,7 +431,7 @@ model supplier_return_invoice_items {
   product        products                 @relation(fields: [product_id], references: [id])
 
   @@map("supplier_return_invoice_items")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -456,7 +456,7 @@ model stock_transfers {
   by_user    users? @relation("TransferByUser", fields: [by_user_id], references: [id])
 
   @@map("stock_transfers")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -485,7 +485,7 @@ model customer_payments {
   creator  users?          @relation(fields: [created_by], references: [id])
 
   @@map("customer_payments")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -511,7 +511,7 @@ model supplier_payments {
   creator  users?             @relation(fields: [created_by], references: [id])
 
   @@map("supplier_payments")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -550,7 +550,7 @@ model checks {
   treasury          treasuries?         @relation(fields: [treasury_id], references: [id])
 
   @@map("checks")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -572,7 +572,7 @@ model expenses {
   treasury treasuries? @relation(fields: [treasury_id], references: [id])
 
   @@map("expenses")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -600,9 +600,11 @@ model treasuries {
   transactions      treasury_transactions[]
   stores            stores[]
   outgoing_checks   checks[]
+  employee_advances employee_advances[]
+  salary_payments   salary_payments[]
 
   @@map("treasuries")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -631,7 +633,7 @@ model treasury_transactions {
   by_user  users?     @relation(fields: [by_user_id], references: [id])
 
   @@map("treasury_transactions")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -649,7 +651,7 @@ model product_price_history {
   product products @relation(fields: [product_id], references: [id], onDelete: Cascade)
 
   @@map("product_price_history")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -685,7 +687,7 @@ model inventory_adjustments {
   user      users?    @relation("AdjustmentByUser", fields: [adjusted_by], references: [id])
 
   @@map("inventory_adjustments")
-  @@schema("elhoot")
+  @@schema("elnesr")
 }
 
 // =======================================
@@ -702,5 +704,79 @@ model audit_log {
   created_at  DateTime? @default(now()) @db.Timestamptz()
 
   @@map("audit_log")
-  @@schema("elhoot")
+  @@schema("elnesr")
+}
+
+// =======================================
+// 21. Employees (الموظفين)
+// =======================================
+model employees {
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String    @db.VarChar(200)
+  phone        String?   @db.VarChar(30)
+  job_title    String?   @db.VarChar(100)
+  basic_salary Decimal   @default(0) @db.Decimal(15, 2)
+  hire_date    DateTime? @db.Date
+  is_active    Boolean   @default(true)
+  notes        String?   @db.Text
+  created_at   DateTime? @default(now()) @db.Timestamptz()
+  updated_at   DateTime? @default(now()) @db.Timestamptz()
+
+  advances        employee_advances[]
+  salary_payments salary_payments[]
+
+  @@map("employees")
+  @@schema("elnesr")
+}
+
+// =======================================
+// 22. Employee Advances (سلف الموظفين)
+// =======================================
+model employee_advances {
+  id                 String    @id @default(uuid()) @db.Uuid
+  employee_id        String    @db.Uuid
+  amount             Decimal   @db.Decimal(15, 2)
+  advance_date       DateTime  @default(now()) @db.Date
+  treasury_id        String?   @db.Uuid
+  notes              String?   @db.Text
+  is_deducted        Boolean   @default(false)
+  salary_payment_id  String?   @db.Uuid
+  expense_id         String?   @db.Uuid
+  created_by_user_id Int?
+  created_at         DateTime? @default(now()) @db.Timestamptz()
+
+  employee       employees        @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  treasury       treasuries?      @relation(fields: [treasury_id], references: [id])
+  salary_payment salary_payments? @relation(fields: [salary_payment_id], references: [id])
+
+  @@map("employee_advances")
+  @@schema("elnesr")
+}
+
+// =======================================
+// 23. Salary Payments (صرف الرواتب والقبض)
+// =======================================
+model salary_payments {
+  id                 String    @id @default(uuid()) @db.Uuid
+  employee_id        String    @db.Uuid
+  month              Int
+  year               Int
+  basic_salary       Decimal   @db.Decimal(15, 2)
+  total_advances     Decimal   @default(0) @db.Decimal(15, 2)
+  bonuses            Decimal   @default(0) @db.Decimal(15, 2)
+  deductions         Decimal   @default(0) @db.Decimal(15, 2)
+  net_paid           Decimal   @db.Decimal(15, 2)
+  payment_date       DateTime  @default(now()) @db.Date
+  treasury_id        String?   @db.Uuid
+  expense_id         String?   @db.Uuid
+  notes              String?   @db.Text
+  created_by_user_id Int?
+  created_at         DateTime? @default(now()) @db.Timestamptz()
+
+  employee employees           @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  treasury treasuries?         @relation(fields: [treasury_id], references: [id])
+  advances employee_advances[]
+
+  @@map("salary_payments")
+  @@schema("elnesr")
 }

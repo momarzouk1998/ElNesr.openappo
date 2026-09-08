@@ -57,9 +57,9 @@ function LoginForm() {
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-28 h-28 rounded-2xl bg-white shadow-xl mb-4 border-2 border-amber-500 p-2">
-            <Image src="/logo.png" alt="شركة الحوت" width={100} height={100} className="rounded-xl object-contain" priority />
+            <Image src="/logo.png" alt="شركة النسر" width={100} height={100} className="rounded-xl object-contain" priority />
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-800">شركة الحوت</h1>
+          <h1 className="text-3xl font-extrabold text-slate-800">شركة النسر</h1>
           <p className="text-sm text-elhoot-600 font-bold mt-1">El Hoot Electrical Systems</p>
           <p className="text-gray-600 mt-2 text-sm">لتجارة وتوزيع الأدوات واللوحات الكهربائية بالجملة</p>
         </div>
@@ -123,13 +123,13 @@ function LoginForm() {
 
           <div className="mt-6 pt-4 border-t border-gray-100 text-center">
             <p className="text-xs text-gray-500 leading-relaxed">
-              هذا النظام مخصص لـ شركة الحوت للأدوات الكهربائية.
+              هذا النظام مخصص لـ شركة النسر للأدوات الكهربائية.
             </p>
           </div>
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-4">
-          شركة الحوت للأدوات الكهربائية © {new Date().getFullYear()}
+          شركة النسر للأدوات الكهربائية © {new Date().getFullYear()}
         </p>
       </div>
     </div>

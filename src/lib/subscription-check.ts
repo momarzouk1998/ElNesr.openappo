@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const SUBSCRIPTION_SYSTEM = 'elhoot';
+const SUBSCRIPTION_SYSTEM = 'elnesr';
 const VERIFY_URL = `https://admin.openappo.com/api/subscription/verify?system=${encodeURIComponent(SUBSCRIPTION_SYSTEM)}`;
 
 function escapeHtml(str: string) {

@@ -5,7 +5,7 @@ import { captureElementToCanvas, downloadCanvasAsPng } from "@/lib/html2canvas-s
 
 export function WhatsAppShareButton({
   targetId = "statement",
-  fileName = "كشف_حساب_شركة_الحوت",
+  fileName = "كشف_حساب_شركة_النسر",
   recipientPhone,
   recipientName,
   title = "كشف الحساب",
@@ -39,7 +39,7 @@ export function WhatsAppShareButton({
       const cleanPhone = recipientPhone ? String(recipientPhone).replace(/\D/g, "") : "";
       const formattedPhone = cleanPhone.startsWith("0") ? `2${cleanPhone}` : cleanPhone;
       const name = recipientName || "العميل المحترم";
-      const shareText = `مرحباً بك أستاذ ${name}،\nمرفق ${title} الخاص بكم من شركة الحوت للأدوات واللوحات الكهربائية.\nشكراً لتعاملكم معنا.`;
+      const shareText = `مرحباً بك أستاذ ${name}،\nمرفق ${title} الخاص بكم من شركة النسر للأدوات واللوحات الكهربائية.\nشكراً لتعاملكم معنا.`;
 
       // 1. Native Mobile Web Share API
       if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
@@ -50,7 +50,7 @@ export function WhatsAppShareButton({
             if (typeof (navigator as any).canShare === "function" && (navigator as any).canShare({ files: [file] })) {
               await navigator.share({
                 files: [file],
-                title: `${title} - شركة الحوت`,
+                title: `${title} - شركة النسر`,
               });
               return;
             }

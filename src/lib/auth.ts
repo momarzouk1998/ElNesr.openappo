@@ -32,6 +32,7 @@ export const ALL_MODULES: AllModule[] = [
   { key: 'inventory',         label: 'المخازن',                 icon: '📦', path: '/inventory' },
   { key: 'treasury',          label: 'الخزائن',                 icon: '🏦', path: '/treasury' },
   { key: 'expenses',          label: 'المصروفات',               icon: '📉', path: '/expenses' },
+  { key: 'employees',         label: 'الموظفين والرواتب',       icon: '👷', path: '/employees' },
   // 🔵 للمحاسب
   { key: 'reports',           label: 'التقارير',                icon: '📈', path: '/reports' },
   // 🟣 Admin only

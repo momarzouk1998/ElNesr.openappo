@@ -27,9 +27,9 @@ export async function GET(req: NextRequest) {
         COUNT(CASE WHEN i.current_stock > 0 THEN 1 END) as positive_items,
         COALESCE(SUM(i.current_stock), 0) as total_qty,
         COALESCE(SUM(CASE WHEN i.current_stock > 0 THEN i.current_stock * COALESCE(p.last_purchase_price, 0) ELSE 0 END), 0) as total_cost
-      FROM elhoot.stores s
-      LEFT JOIN elhoot.inventory i ON i.store_id = s.id
-      LEFT JOIN elhoot.products p ON p.id = i.product_id
+      FROM elnesr.stores s
+      LEFT JOIN elnesr.inventory i ON i.store_id = s.id
+      LEFT JOIN elnesr.products p ON p.id = i.product_id
       GROUP BY s.id, s.name
       ORDER BY s.name ASC;
     `;

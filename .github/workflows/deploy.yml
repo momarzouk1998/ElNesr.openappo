@@ -32,11 +32,11 @@ jobs:
           script: |
             set -e
 
-            GHCR_IMAGE="ghcr.io/momarzouk1998/elhoot.openappo:latest"
-            LOCAL_IMAGE="elhoot-app:latest"
-            HOST_PORT=3008
-            APP_PORT=3008
-            SERVICE_NAME="elhoot-app"
+            GHCR_IMAGE="ghcr.io/momarzouk1998/elnesr.openappo:latest"
+            LOCAL_IMAGE="elnesr-app:latest"
+            HOST_PORT=3011
+            APP_PORT=3011
+            SERVICE_NAME="elnesr-app"
 
             GH_USER="${{ github.actor }}"
             GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
@@ -55,12 +55,12 @@ jobs:
             docker logout ghcr.io >/dev/null
 
             echo "=== [5/8] Ensure env file exists on the host ==="
-            ENV_FILE=/tmp/elhoot.env
-            if [ -f /opt/elhoot/.env ]; then
-              cp /opt/elhoot/.env "$ENV_FILE"
-              echo "  Loaded environment file from /opt/elhoot/.env"
+            ENV_FILE=/tmp/elnesr.env
+            if [ -f /opt/elnesr/.env ]; then
+              cp /opt/elnesr/.env "$ENV_FILE"
+              echo "  Loaded environment file from /opt/elnesr/.env"
             else
-              echo "  /opt/elhoot/.env not found — creating an empty env file"
+              echo "  /opt/elnesr/.env not found — creating an empty env file"
               : > "$ENV_FILE"
             fi
 
@@ -98,8 +98,8 @@ jobs:
             INT_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "http://127.0.0.1:${HOST_PORT}/" || echo "000")
             echo "HTTP: $INT_CODE"
 
-            echo "=== External health check (https://elhoot.openappo.com) ==="
-            EXT_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://elhoot.openappo.com/ || echo "000")
+            echo "=== External health check (https://elnesr.openappo.com) ==="
+            EXT_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://elnesr.openappo.com/ || echo "000")
             echo "HTTP: $EXT_CODE"
 
             echo "=== [8/8] Cleaning up old images ==="
