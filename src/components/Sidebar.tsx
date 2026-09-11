@@ -106,16 +106,18 @@ export default function Sidebar({ profile }: { profile: CurrentProfile }) {
   }
 
   function handleInstallApp() {
-    if ("serviceWorker" in navigator && "BeforeInstallPromptEvent" in window) {
-      // @ts-ignore
-      const deferredPrompt = window.deferredPrompt;
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-      } else {
-        alert("📱 التطبيق مثبّت بالفعل أو متاح للتثبيت من إعدادات المتصفح");
-      }
+    // @ts-ignore
+    const deferredPrompt = typeof window !== "undefined" ? window.deferredPrompt : null;
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult?.outcome === "accepted") {
+          // @ts-ignore
+          window.deferredPrompt = null;
+        }
+      });
     } else {
-      alert("📱 يمكنك تثبيت التطبيق من إعدادات المتصفح (المزيد > تثبيت التطبيق)");
+      alert("📲 لتثبيت التطبيق على هاتفك فوراً:\n\n1️⃣ اضغط على علامة القائمة (⋮) أعلى متصفح Chrome.\n2️⃣ اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».\n\nسينزل التطبيق على شاشة الموبايل كأيقونة مستقلة فوراً بدون الحاجة لملفات APK وبأعلى درجات الأمان.");
     }
   }
 

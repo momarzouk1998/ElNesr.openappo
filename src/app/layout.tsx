@@ -140,26 +140,14 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               if (typeof window !== 'undefined') {
-                let deferredPrompt;
                 window.addEventListener('beforeinstallprompt', (e) => {
                   e.preventDefault();
-                  deferredPrompt = e;
-                  window.deferredPrompt = deferredPrompt;
+                  window.deferredPrompt = e;
                 });
 
-                // Unregister any old Service Worker and wipe cache
                 if ('serviceWorker' in navigator) {
-                  navigator.serviceWorker.getRegistrations().then((registrations) => {
-                    for (const reg of registrations) {
-                      reg.unregister();
-                    }
-                  });
-                }
-                if (typeof window !== 'undefined' && 'caches' in window) {
-                  caches.keys().then((names) => {
-                    for (const name of names) {
-                      caches.delete(name);
-                    }
+                  navigator.serviceWorker.register('/sw.js?v=20260909').catch((err) => {
+                    console.log('SW registration skipped:', err);
                   });
                 }
               }
