@@ -1,25 +1,117 @@
 /**
  * Safe wrapper around html2canvas.
- * Converts oklch/color()/oklab functions to standard rgb() format,
+ * Converts oklch/color()/oklab functions to standard rgb()/rgba() format,
  * completely shielding html2canvas from unsupported CSS color syntax
  * while preserving 100% of stylesheet layout, typography, and geometry.
  *
  * Supports renderWidth option to enforce full desktop/document width on mobile captures.
  */
 
-function convertCssColorToRgb(str: string, ctx: CanvasRenderingContext2D | null): string {
-  if (!str || typeof str !== "string") return str;
-  if (!str.includes("oklch") && !str.includes("color(") && !str.includes("oklab")) return str;
-  if (!ctx) return str.replace(/(oklch|oklab|color)\([^)]+\)/gi, "rgb(15, 65, 133)");
+function parseNumberOrPercent(val: string): number {
+  if (!val) return 0;
+  const trimmed = val.trim();
+  if (trimmed.endsWith("%")) {
+    return parseFloat(trimmed) / 100;
+  }
+  return parseFloat(trimmed);
+}
 
-  return str.replace(/(oklch|oklab|color)\([^)]+\)/gi, (match) => {
+function oklabToRgb(L: number, a: number, b: number, alpha?: number): string {
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+
+  const l = l_ ** 3;
+  const m = m_ ** 3;
+  const s = s_ ** 3;
+
+  const r = +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+  const g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+  const bl = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+
+  function toGamma(c: number): number {
+    if (c <= 0) return 0;
+    if (c >= 1) return 255;
+    const v = c <= 0.0031308 ? 12.92 * c : 1.055 * (c ** (1 / 2.4)) - 0.055;
+    return Math.round(Math.min(255, Math.max(0, v * 255)));
+  }
+
+  const red = toGamma(r);
+  const green = toGamma(g);
+  const blue = toGamma(bl);
+
+  return alpha !== undefined && alpha < 1
+    ? `rgba(${red}, ${green}, ${blue}, ${Number(alpha.toFixed(3))})`
+    : `rgb(${red}, ${green}, ${blue})`;
+}
+
+function oklchToRgb(L: number, C: number, h: number, alpha?: number): string {
+  const hRad = ((h || 0) * Math.PI) / 180;
+  const a = C * Math.cos(hRad);
+  const b = C * Math.sin(hRad);
+  return oklabToRgb(L, a, b, alpha);
+}
+
+export function sanitizeCssColor(str: string): string {
+  if (!str || typeof str !== "string") return str;
+  if (!/(oklch|oklab|color)\(/i.test(str)) return str;
+
+  return str.replace(/(oklch|oklab|color)\(([^)]+)\)/gi, (match, fn, content) => {
     try {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillStyle = match;
-      return ctx.fillStyle; // Browser canvas natively resolves to standard rgb(r, g, b)
+      const parts = content.trim().split(/\s*\/\s*/);
+      const mainParts = parts[0].trim().split(/[\s,]+/);
+      const alpha =
+        parts[1] !== undefined
+          ? parseNumberOrPercent(parts[1])
+          : mainParts[3] !== undefined
+          ? parseNumberOrPercent(mainParts[3])
+          : 1;
+
+      const lowerFn = fn.toLowerCase();
+      if (lowerFn === "oklab") {
+        const L = parseNumberOrPercent(mainParts[0]);
+        const a = parseFloat(mainParts[1]) || 0;
+        const b = parseFloat(mainParts[2]) || 0;
+        return oklabToRgb(L, a, b, alpha);
+      }
+      if (lowerFn === "oklch") {
+        const L = parseNumberOrPercent(mainParts[0]);
+        const C = parseFloat(mainParts[1]) || 0;
+        const h = parseFloat(mainParts[2]) || 0;
+        return oklchToRgb(L, C, h, alpha);
+      }
+      if (lowerFn === "color") {
+        const offset = mainParts[0] === "srgb" || mainParts[0] === "display-p3" ? 1 : 0;
+        const r = Math.round(Math.min(255, Math.max(0, parseNumberOrPercent(mainParts[offset]) * 255)));
+        const g = Math.round(Math.min(255, Math.max(0, parseNumberOrPercent(mainParts[offset + 1]) * 255)));
+        const b = Math.round(Math.min(255, Math.max(0, parseNumberOrPercent(mainParts[offset + 2]) * 255)));
+        return alpha < 1 ? `rgba(${r}, ${g}, ${b}, ${alpha})` : `rgb(${r}, ${g}, ${b})`;
+      }
     } catch {
       return "rgb(15, 65, 133)";
     }
+    return "rgb(15, 65, 133)";
+  });
+}
+
+function wrapStyleDeclaration(cs: CSSStyleDeclaration): CSSStyleDeclaration {
+  return new Proxy(cs, {
+    get(target, prop, receiver) {
+      if (prop === "getPropertyValue") {
+        return (cssProp: string) => {
+          const val = target.getPropertyValue(cssProp);
+          return sanitizeCssColor(val);
+        };
+      }
+      const origVal = Reflect.get(target, prop, receiver);
+      if (typeof origVal === "function") {
+        return origVal.bind(target);
+      }
+      if (typeof origVal === "string") {
+        return sanitizeCssColor(origVal);
+      }
+      return origVal;
+    },
   });
 }
 
@@ -32,7 +124,6 @@ function convertCssColorToRgb(str: string, ctx: CanvasRenderingContext2D | null)
 export async function downloadCanvasAsPng(canvas: HTMLCanvasElement, filename: string): Promise<void> {
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
   if (!blob) {
-    // Extremely unlikely fallback if toBlob is unsupported
     const link = document.createElement("a");
     link.download = filename;
     link.href = canvas.toDataURL("image/png");
@@ -60,86 +151,91 @@ export async function captureElementToCanvas(
 ): Promise<HTMLCanvasElement> {
   const html2canvas = (await import("html2canvas")).default;
 
-  return await html2canvas(element, {
-    useCORS: true,
-    allowTaint: true,
-    scale: options.scale ?? 2.5,
-    logging: false,
-    backgroundColor: options.backgroundColor ?? "#ffffff",
-    scrollX: 0,
-    scrollY: 0,
-    windowWidth: options.renderWidth ? Math.max(options.renderWidth + 100, 1024) : undefined,
-    onclone: (clonedDoc, clonedElement) => {
-      const helperCanvas = clonedDoc.createElement("canvas");
-      const ctx = helperCanvas.getContext("2d");
+  // 1. Intercept global window.getComputedStyle and CSSStyleDeclaration.prototype.getPropertyValue
+  const origWindowGetComputedStyle = typeof window !== "undefined" ? window.getComputedStyle : null;
+  const origGetPropertyValue =
+    typeof CSSStyleDeclaration !== "undefined" ? CSSStyleDeclaration.prototype.getPropertyValue : null;
 
-      // 1. Enforce high-res document layout width if requested (prevents mobile squishing)
-      if (options.renderWidth) {
-        clonedElement.style.setProperty("width", `${options.renderWidth}px`, "important");
-        clonedElement.style.setProperty("min-width", `${options.renderWidth}px`, "important");
-        clonedElement.style.setProperty("max-width", `${options.renderWidth}px`, "important");
-        clonedElement.style.setProperty("box-sizing", "border-box", "important");
-      }
+  if (origWindowGetComputedStyle && typeof window !== "undefined") {
+    window.getComputedStyle = function (elt: Element, pseudoElt?: string | null) {
+      const cs = origWindowGetComputedStyle.call(window, elt, pseudoElt);
+      return wrapStyleDeclaration(cs);
+    };
+  }
 
-      // 2. Intercept getComputedStyle in the cloned document window with a Proxy
-      const docView = clonedDoc.defaultView || window;
-      if (docView && docView.getComputedStyle) {
-        const originalGetComputedStyle = docView.getComputedStyle.bind(docView);
-        docView.getComputedStyle = function (elt: Element, pseudoElt?: string | null) {
-          const cs = originalGetComputedStyle(elt, pseudoElt);
-          return new Proxy(cs, {
-            get(target, prop: string | symbol) {
-              const origVal = (target as any)[prop];
-              if (typeof origVal === "function") {
-                if (prop === "getPropertyValue") {
-                  return (cssProp: string) => {
-                    const val = target.getPropertyValue(cssProp);
-                    if (val && typeof val === "string" && (val.includes("oklch") || val.includes("color(") || val.includes("oklab"))) {
-                      return convertCssColorToRgb(val, ctx);
-                    }
-                    return val;
-                  };
-                }
-                return origVal.bind(target);
-              }
-              if (typeof origVal === "string" && (origVal.includes("oklch") || origVal.includes("color(") || origVal.includes("oklab"))) {
-                return convertCssColorToRgb(origVal, ctx);
-              }
-              return origVal;
-            },
+  if (origGetPropertyValue && typeof CSSStyleDeclaration !== "undefined") {
+    CSSStyleDeclaration.prototype.getPropertyValue = function (prop: string) {
+      const val = origGetPropertyValue.call(this, prop);
+      return sanitizeCssColor(val);
+    };
+  }
+
+  try {
+    return await html2canvas(element, {
+      useCORS: true,
+      allowTaint: true,
+      scale: options.scale ?? 2.5,
+      logging: false,
+      backgroundColor: options.backgroundColor ?? "#ffffff",
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: options.renderWidth ? Math.max(options.renderWidth + 100, 1024) : undefined,
+      onclone: (clonedDoc, clonedElement) => {
+        // 2. Enforce high-res document layout width if requested (prevents mobile squishing)
+        if (options.renderWidth) {
+          clonedElement.style.setProperty("width", `${options.renderWidth}px`, "important");
+          clonedElement.style.setProperty("min-width", `${options.renderWidth}px`, "important");
+          clonedElement.style.setProperty("max-width", `${options.renderWidth}px`, "important");
+          clonedElement.style.setProperty("box-sizing", "border-box", "important");
+        }
+
+        // 3. Intercept getComputedStyle in the cloned document iframe window
+        if (clonedDoc.defaultView && clonedDoc.defaultView.getComputedStyle) {
+          const origIframeGetComputedStyle = clonedDoc.defaultView.getComputedStyle.bind(clonedDoc.defaultView);
+          clonedDoc.defaultView.getComputedStyle = function (elt: Element, pseudoElt?: string | null) {
+            const cs = origIframeGetComputedStyle(elt, pseudoElt);
+            return wrapStyleDeclaration(cs);
+          };
+        }
+
+        // 4. Sanitize any style tags inside the cloned document
+        try {
+          const styleTags = clonedDoc.querySelectorAll("style");
+          styleTags.forEach((styleTag) => {
+            if (styleTag.textContent && /(oklch|oklab|color)\(/i.test(styleTag.textContent)) {
+              styleTag.textContent = sanitizeCssColor(styleTag.textContent);
+            }
           });
-        };
-      }
+        } catch (err) {
+          console.warn("Style tag sanitization warning:", err);
+        }
 
-      // 3. Sanitize any style tags inside the cloned document
-      try {
-        const styleTags = clonedDoc.querySelectorAll("style");
-        styleTags.forEach((styleTag) => {
-          if (styleTag.textContent && (styleTag.textContent.includes("oklch") || styleTag.textContent.includes("oklab") || styleTag.textContent.includes("color("))) {
-            styleTag.textContent = convertCssColorToRgb(styleTag.textContent, ctx);
-          }
-        });
-      } catch (err) {
-        console.warn("Style tag sanitization warning:", err);
-      }
-
-      // 4. Walk all elements in the cloned document and fix any inline styles with oklch
-      try {
-        const allCloned = [clonedElement, ...Array.from(clonedElement.querySelectorAll("*"))] as HTMLElement[];
-        allCloned.forEach((el) => {
-          if (el.style) {
-            for (let i = 0; i < el.style.length; i++) {
-              const prop = el.style[i];
-              const val = el.style.getPropertyValue(prop);
-              if (val && (val.includes("oklch") || val.includes("color(") || val.includes("oklab"))) {
-                el.style.setProperty(prop, convertCssColorToRgb(val, ctx), "important");
+        // 5. Walk all elements in the cloned document and fix any inline styles
+        try {
+          const allCloned = [clonedElement, ...Array.from(clonedElement.querySelectorAll("*"))] as HTMLElement[];
+          allCloned.forEach((el) => {
+            if (el.style) {
+              for (let i = 0; i < el.style.length; i++) {
+                const prop = el.style[i];
+                const val = el.style.getPropertyValue(prop);
+                if (val && /(oklch|oklab|color)\(/i.test(val)) {
+                  el.style.setProperty(prop, sanitizeCssColor(val), el.style.getPropertyPriority(prop));
+                }
               }
             }
-          }
-        });
-      } catch (err) {
-        console.warn("Inline style sanitization warning:", err);
-      }
-    },
-  });
+          });
+        } catch (err) {
+          console.warn("Inline style sanitization warning:", err);
+        }
+      },
+    });
+  } finally {
+    // Always restore original functions cleanly
+    if (origWindowGetComputedStyle && typeof window !== "undefined") {
+      window.getComputedStyle = origWindowGetComputedStyle;
+    }
+    if (origGetPropertyValue && typeof CSSStyleDeclaration !== "undefined") {
+      CSSStyleDeclaration.prototype.getPropertyValue = origGetPropertyValue;
+    }
+  }
 }
