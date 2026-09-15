@@ -60,7 +60,12 @@ export default function PartnersPage() {
       const res = await fetch("/api/partners");
       const json = await res.json();
       if (json.ok) {
-        setPartners(json.data || []);
+        const list = Array.isArray(json.data)
+          ? json.data
+          : Array.isArray(json.data?.items)
+          ? json.data.items
+          : [];
+        setPartners(list);
       }
     } catch (e) {
       console.error("Error loading partners:", e);
@@ -73,7 +78,12 @@ export default function PartnersPage() {
       const res = await fetch("/api/treasury");
       const json = await res.json();
       if (json.ok) {
-        setTreasuries(json.data || []);
+        const list = Array.isArray(json.data?.items)
+          ? json.data.items
+          : Array.isArray(json.data)
+          ? json.data
+          : [];
+        setTreasuries(list);
       }
     } catch (e) {
       console.error("Error loading treasuries:", e);
@@ -215,7 +225,7 @@ export default function PartnersPage() {
           </div>
 
           {/* Individual Partner Cards */}
-          {partners.map((p) => {
+          {(partners || []).map((p) => {
             const isSelected = selectedPartnerId === p.id;
             const partnerWithdrawn = selectedPartnerId || fromDate || toDate ? getPartnerFilteredTotal(p.id) : (p.totalWithdrawn || 0);
 
@@ -738,12 +748,31 @@ function AddWithdrawalModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [partnerId, setPartnerId] = useState(partners[0]?.id || "");
+  const safePartners = Array.isArray(partners) ? partners : [];
+  const safeTreasuries = Array.isArray(treasuries)
+    ? treasuries
+    : Array.isArray((treasuries as any)?.items)
+    ? (treasuries as any).items
+    : [];
+
+  const [partnerId, setPartnerId] = useState(safePartners[0]?.id || "");
   const [amount, setAmount] = useState("");
   const [withdrawalDate, setWithdrawalDate] = useState(new Date().toISOString().split("T")[0]);
-  const [treasuryId, setTreasuryId] = useState(treasuries[0]?.id || "");
+  const [treasuryId, setTreasuryId] = useState(safeTreasuries[0]?.id || "");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!partnerId && safePartners.length > 0) {
+      setPartnerId(safePartners[0].id);
+    }
+  }, [safePartners, partnerId]);
+
+  useEffect(() => {
+    if (!treasuryId && safeTreasuries.length > 0) {
+      setTreasuryId(safeTreasuries[0].id);
+    }
+  }, [safeTreasuries, treasuryId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -805,7 +834,7 @@ function AddWithdrawalModal({
               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
             >
               <option value="">اختر الشريك...</option>
-              {partners.map((p) => (
+              {safePartners.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
@@ -846,7 +875,7 @@ function AddWithdrawalModal({
               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
             >
               <option value="">بدون خصم من الخزينة (سحب نقدي خارج الخزائن)</option>
-              {treasuries.map((t) => (
+              {safeTreasuries.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name} (رصيدها: {formatEGP(t.current_balance)} ج)
                 </option>
