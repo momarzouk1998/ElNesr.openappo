@@ -9,6 +9,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   try {
     const { adjId } = await params;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(adjId);
+    if (!isUuid) {
+      return NextResponse.json({ ok: false, error: { code: "NOT_FOUND", message: "معرف غير صالح" } }, { status: 404 });
+    }
+
     const adjustment = await prisma.customer_adjustments.findUnique({
       where: { id: adjId },
       include: {
@@ -108,6 +113,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const { adjId } = await params;
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(adjId);
+    if (!isUuid) {
+      return NextResponse.json({ ok: false, error: { code: "NOT_FOUND", message: "معرف غير صالح" } }, { status: 404 });
+    }
+
     const existing = await prisma.customer_adjustments.findUnique({
       where: { id: adjId },
     });

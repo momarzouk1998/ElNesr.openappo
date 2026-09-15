@@ -35,6 +35,9 @@ export default async function CustomerAdjustmentPrintPage({
   const downloadImage = sp.download_image === "1";
   const downloadPdf = sp.download_pdf === "1";
 
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  if (!isUuid) notFound();
+
   const adjustment = await prisma.customer_adjustments.findUnique({
     where: { id },
     include: {
