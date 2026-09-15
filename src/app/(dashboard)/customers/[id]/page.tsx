@@ -7,6 +7,8 @@ import { formatEGP, formatDate, statusColor } from "@/lib/format";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import PaymentReceiptModal from "@/components/PaymentReceiptModal";
 import CustomerStatementModal from "@/components/CustomerStatementModal";
+import CustomerAdjustmentReceiptModal from "@/components/CustomerAdjustmentReceiptModal";
+import CustomerAdjustmentModal from "@/components/CustomerAdjustmentModal";
 
 interface CustomerDetail {
   id: string;
@@ -37,6 +39,7 @@ export default function CustomerDetailPage() {
   const [showAdjustment, setShowAdjustment] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showStatementModal, setShowStatementModal] = useState(false);
+  const [selectedAdjustmentReceiptId, setSelectedAdjustmentReceiptId] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -135,8 +138,16 @@ export default function CustomerDetailPage() {
         </table>
       </div>
 
-      {/* قسم كشف الحساب */}
-      <StatementSection customerId={customer.id} balance={Number(customer.balance)} onCollect={() => setShowCollect(true)} onCustomerChanged={reloadCustomer} />
+      {/* قسم التحصيلات والسلف */}
+      <StatementSection
+        customerId={customer.id}
+        customerName={customer.name}
+        balance={Number(customer.balance)}
+        onCollect={() => setShowCollect(true)}
+        onAdjust={() => setShowAdjustment(true)}
+        onCustomerChanged={reloadCustomer}
+        onOpenAdjustmentReceipt={(id) => setSelectedAdjustmentReceiptId(id)}
+      />
 
       {/* قسم فواتير العميل */}
       <InvoicesSection customerId={customer.id} />
@@ -146,7 +157,23 @@ export default function CustomerDetailPage() {
       )}
 
       {showAdjustment && (
-        <CustomerAdjustmentModal customerId={customer.id} customerName={customer.name} onClose={() => setShowAdjustment(false)} onSaved={() => { setShowAdjustment(false); reloadCustomer(); }} />
+        <CustomerAdjustmentModal
+          isOpen={showAdjustment}
+          defaultCustomerId={customer.id}
+          defaultCustomerName={customer.name}
+          onClose={() => setShowAdjustment(false)}
+          onSuccess={() => {
+            setShowAdjustment(false);
+            reloadCustomer();
+          }}
+        />
+      )}
+
+      {selectedAdjustmentReceiptId && (
+        <CustomerAdjustmentReceiptModal
+          adjustmentId={selectedAdjustmentReceiptId}
+          onClose={() => setSelectedAdjustmentReceiptId(null)}
+        />
       )}
 
       {showEdit && (
@@ -192,14 +219,48 @@ async function deleteCustomer(customer: CustomerDetail, router: ReturnType<typeo
 }
 
 /* ============================================
-   قسم كشف الحساب
+   قسم كشف الحساب والتحصيلات والسلف
 ============================================ */
-function StatementSection({ customerId, balance, onCollect, onCustomerChanged }: { customerId: string; balance: number; onCollect: () => void; onCustomerChanged: () => void }) {
-  const { data, loading, refetch } = useApi<{ items: Payment[]; total_amount: number }>(`/api/payments/customers?customer_id=${customerId}&limit=9999`);
-  const payments = data?.items || [];
-  const totalPaid = data?.total_amount || 0;
+interface AdjustmentItem {
+  id: string;
+  adjustment_date: string;
+  amount: number;
+  type: string;
+  treasury?: { id: string; name: string } | null;
+  notes: string | null;
+  creator_name?: string | null;
+}
+
+function StatementSection({
+  customerId,
+  customerName,
+  balance,
+  onCollect,
+  onAdjust,
+  onCustomerChanged,
+  onOpenAdjustmentReceipt,
+}: {
+  customerId: string;
+  customerName: string;
+  balance: number;
+  onCollect: () => void;
+  onAdjust: () => void;
+  onCustomerChanged: () => void;
+  onOpenAdjustmentReceipt: (id: string) => void;
+}) {
+  const [activeTab, setActiveTab] = useState<"payments" | "adjustments">("payments");
+  const { data: paymentsData, loading: paymentsLoading, refetch: refetchPayments } = useApi<{ items: Payment[]; total_amount: number }>(`/api/payments/customers?customer_id=${customerId}&limit=9999`);
+  const { data: adjustmentsData, loading: adjustmentsLoading, refetch: refetchAdjustments } = useApi<{ items: AdjustmentItem[]; total_debit: number; total_credit: number }>(`/api/customers/adjustments?customer_id=${customerId}&limit=9999`);
+
+  const payments = paymentsData?.items || [];
+  const adjustments = adjustmentsData?.items || [];
+  const totalPaid = paymentsData?.total_amount || 0;
+  const totalDebit = adjustmentsData?.total_debit || 0;
+  const totalCredit = adjustmentsData?.total_credit || 0;
+
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const [deletingPayment, setDeletingPayment] = useState<Payment | null>(null);
+  const [deletingAdjustment, setDeletingAdjustment] = useState<AdjustmentItem | null>(null);
   const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(null);
 
   // تعديل مدفوعة
@@ -207,111 +268,257 @@ function StatementSection({ customerId, balance, onCollect, onCustomerChanged }:
     setEditingPayment(payment);
   }
 
-  // حذف مدفوعة - مع مربع تأكيد محسن
+  // حذف مدفوعة
   async function deletePayment(payment: Payment) {
     setDeletingPayment(payment);
   }
 
   async function confirmDeletePayment() {
     if (!deletingPayment) return;
-
     try {
       const res = await fetch(`/api/payments/customers/${deletingPayment.id}`, { method: 'DELETE' });
       const json = await res.json();
-      
       if (!res.ok) {
         alert('❌ ' + (json?.error?.message || json?.error?.code || 'فشل في الحذف'));
         return;
       }
-      
       alert('✅ تم حذف المدفوعة وإرجاع المبلغ لرصيد العميل');
-      refetch(); // تحديث قائمة المدفوعات
-      onCustomerChanged(); // تحديث رصيد العميل بدون reload كامل
-    } catch (e) {
+      refetchPayments();
+      onCustomerChanged();
+    } catch {
       alert('❌ حدث خطأ أثناء الحذف');
     } finally {
       setDeletingPayment(null);
     }
   }
 
+  async function confirmDeleteAdjustment() {
+    if (!deletingAdjustment) return;
+    try {
+      const res = await fetch(`/api/customers/${customerId}/adjustments/${deletingAdjustment.id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok) {
+        alert('❌ ' + (json?.error?.message || 'فشل في حذف التسوية'));
+        return;
+      }
+      alert('✅ تم حذف السلفة/التسوية وإعادة ضبط رصيد العميل بنجاح');
+      refetchAdjustments();
+      onCustomerChanged();
+    } catch {
+      alert('❌ حدث خطأ أثناء الحذف');
+    } finally {
+      setDeletingAdjustment(null);
+    }
+  }
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">📋 كشف الحساب</h2>
-        <button onClick={onCollect} className="btn-primary text-sm">+ تحصيل جديد</button>
+      {/* Header & Controls */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setActiveTab("payments")}
+            className={`px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
+              activeTab === "payments"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            💰 التحصيلات النقدية ({payments.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("adjustments")}
+            className={`px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
+              activeTab === "adjustments"
+                ? "bg-amber-600 text-white shadow-sm"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+            }`}
+          >
+            💸 السلف والتسويات ({adjustments.length})
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {activeTab === "payments" ? (
+            <button onClick={onCollect} className="btn-primary text-xs sm:text-sm py-1.5">+ تحصيل جديد</button>
+          ) : (
+            <button
+              onClick={onAdjust}
+              className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs sm:text-sm transition-all shadow-sm cursor-pointer"
+            >
+              + سلفة / تسوية جديدة 💸
+            </button>
+          )}
+        </div>
       </div>
 
-      {loading ? <div className="card text-center py-8 text-gray-500">⏳ جاري التحميل...</div> : (
-        <div className="card overflow-x-auto p-0">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-3 text-right">التاريخ</th>
-                <th className="p-3 text-right">الخزينة</th>
-                <th className="p-3 text-right">طريقة الدفع</th>
-                <th className="p-3 text-right">البيان</th>
-                <th className="p-3 text-right">المبلغ</th>
-                <th className="p-3 text-center">الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map(p => (
-                <tr
-                  key={p.id}
-                  onClick={() => setSelectedReceiptId(p.id)}
-                  className="border-t hover:bg-emerald-50/60 cursor-pointer transition-colors"
-                  title="اضغط لعرض وتدقيق ومشاركة إيصال التحصيل عبر واتساب"
-                >
-                  <td className="p-3 text-xs">{formatDate(p.payment_date)}</td>
-                  <td className="p-3 text-xs text-gray-600">{p.treasury?.name || '—'}</td>
-                  <td className="p-3 text-xs">{p.payment_method}</td>
-                  <td className="p-3">{p.notes || 'تحصيل من عميل'}</td>
-                  <td className="p-3 font-mono font-bold text-green-700">{formatEGP(p.amount)}</td>
-                  <td className="p-3" onClick={e => e.stopPropagation()}>
-                    <div className="flex gap-1 justify-center">
-                      <button
-                        onClick={() => setSelectedReceiptId(p.id)}
-                        className="text-xs px-2 py-1 bg-emerald-100 text-emerald-800 rounded hover:bg-emerald-200 font-bold cursor-pointer"
-                        title="إيصال التحصيل"
-                      >
-                        💳 إيصال
-                      </button>
-                      <button
-                        onClick={() => editPayment(p)}
-                        className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer"
-                        title="تعديل"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => deletePayment(p)}
-                        className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 cursor-pointer"
-                        title="حذف"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {payments.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-gray-400">لا توجد حركات</td></tr>}
-            </tbody>
-            {payments.length > 0 && (
-              <tfoot>
-                <tr className="bg-gray-100 font-bold">
-                  <td colSpan={5} className="p-3 text-left">الإجمالي:</td>
-                  <td className="p-3 font-mono">{formatEGP(totalPaid)}</td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
+      {/* Tab 1: Payments */}
+      {activeTab === "payments" && (
+        <>
+          {paymentsLoading ? (
+            <div className="card text-center py-8 text-gray-500">⏳ جاري التحميل...</div>
+          ) : (
+            <div className="card overflow-x-auto p-0">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="p-3 text-right">التاريخ</th>
+                    <th className="p-3 text-right">الخزينة</th>
+                    <th className="p-3 text-right">طريقة الدفع</th>
+                    <th className="p-3 text-right">البيان</th>
+                    <th className="p-3 text-right">المبلغ</th>
+                    <th className="p-3 text-center">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p) => (
+                    <tr
+                      key={p.id}
+                      onClick={() => setSelectedReceiptId(p.id)}
+                      className="border-t hover:bg-emerald-50/60 cursor-pointer transition-colors"
+                      title="اضغط لعرض وتدقيق ومشاركة إيصال التحصيل عبر واتساب"
+                    >
+                      <td className="p-3 text-xs font-mono">{formatDate(p.payment_date)}</td>
+                      <td className="p-3 text-xs text-gray-600">{p.treasury?.name || '—'}</td>
+                      <td className="p-3 text-xs">{p.payment_method}</td>
+                      <td className="p-3 text-xs">{p.notes || 'تحصيل من عميل'}</td>
+                      <td className="p-3 font-mono font-bold text-green-700">{formatEGP(p.amount)} ج</td>
+                      <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-1 justify-center">
+                          <button
+                            onClick={() => setSelectedReceiptId(p.id)}
+                            className="text-xs px-2 py-1 bg-emerald-100 text-emerald-800 rounded hover:bg-emerald-200 font-bold cursor-pointer"
+                            title="إيصال التحصيل"
+                          >
+                            💳 إيصال
+                          </button>
+                          <button
+                            onClick={() => editPayment(p)}
+                            className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer"
+                            title="تعديل"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => deletePayment(p)}
+                            className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 cursor-pointer"
+                            title="حذف"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {payments.length === 0 && (
+                    <tr><td colSpan={6} className="p-8 text-center text-gray-400">لا توجد حركات تحصيل</td></tr>
+                  )}
+                </tbody>
+                {payments.length > 0 && (
+                  <tfoot>
+                    <tr className="bg-gray-100 font-bold">
+                      <td colSpan={4} className="p-3 text-left">إجمالي التحصيلات:</td>
+                      <td colSpan={2} className="p-3 font-mono text-green-700 font-extrabold">{formatEGP(totalPaid)} ج</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          )}
+        </>
       )}
-      
+
+      {/* Tab 2: Adjustments & Advances */}
+      {activeTab === "adjustments" && (
+        <>
+          {adjustmentsLoading ? (
+            <div className="card text-center py-8 text-gray-500">⏳ جاري التحميل...</div>
+          ) : (
+            <div className="card overflow-x-auto p-0">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="p-3 text-right">التاريخ</th>
+                    <th className="p-3 text-right">النوع</th>
+                    <th className="p-3 text-right">المبلغ</th>
+                    <th className="p-3 text-right">الخزينة</th>
+                    <th className="p-3 text-right">البيان / الملاحظات</th>
+                    <th className="p-3 text-right">المسؤول</th>
+                    <th className="p-3 text-center">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adjustments.map((a) => {
+                    const isDebit = a.type === "debit";
+                    return (
+                      <tr
+                        key={a.id}
+                        onClick={() => onOpenAdjustmentReceipt(a.id)}
+                        className="border-t hover:bg-amber-50/50 cursor-pointer transition-colors"
+                        title="اضغط لعرض إيصال السلفة وطباعته أو مشاركته"
+                      >
+                        <td className="p-3 text-xs font-mono">{formatDate(a.adjustment_date)}</td>
+                        <td className="p-3">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+                              isDebit ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {isDebit ? "💸 سلفة (إضافة عليه)" : "🟢 خصم وتسوية"}
+                          </span>
+                        </td>
+                        <td className={`p-3 font-mono font-extrabold ${isDebit ? "text-amber-700" : "text-emerald-700"}`}>
+                          {isDebit ? `+ ${formatEGP(a.amount)}` : `- ${formatEGP(a.amount)}`} ج
+                        </td>
+                        <td className="p-3 text-xs text-gray-600">{a.treasury?.name || "—"}</td>
+                        <td className="p-3 text-xs font-medium text-slate-700 max-w-xs truncate">{a.notes || "—"}</td>
+                        <td className="p-3 text-xs text-slate-500">{a.creator_name || "—"}</td>
+                        <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex gap-1 justify-center">
+                            <button
+                              onClick={() => onOpenAdjustmentReceipt(a.id)}
+                              className="text-xs px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded font-bold cursor-pointer transition-colors shadow-sm"
+                              title="عرض وطباعة إيصال السلفة"
+                            >
+                              🧾 إيصال
+                            </button>
+                            <button
+                              onClick={() => setDeletingAdjustment(a)}
+                              className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded cursor-pointer transition-colors"
+                              title="حذف السلفة"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {adjustments.length === 0 && (
+                    <tr><td colSpan={7} className="p-8 text-center text-gray-400">لا توجد سلف أو تسويات مسجلة لهذا العميل</td></tr>
+                  )}
+                </tbody>
+                {adjustments.length > 0 && (
+                  <tfoot>
+                    <tr className="bg-gray-100 font-bold text-xs sm:text-sm">
+                      <td colSpan={2} className="p-3 text-left">الإجمالي:</td>
+                      <td colSpan={5} className="p-3 font-mono">
+                        <span className="text-amber-700 font-bold ml-3">إجمالي السلف: {formatEGP(totalDebit)} ج</span>
+                        <span className="text-blue-700 font-bold">إجمالي التسويات: {formatEGP(totalCredit)} ج</span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
       {selectedReceiptId && (
         <PaymentReceiptModal paymentId={selectedReceiptId} onClose={() => setSelectedReceiptId(null)} />
       )}
-      
+
       {editingPayment && (
         <EditPaymentForm
           payment={editingPayment}
@@ -319,30 +526,40 @@ function StatementSection({ customerId, balance, onCollect, onCustomerChanged }:
           onClose={() => setEditingPayment(null)}
           onSaved={() => {
             setEditingPayment(null);
-            refetch();
-            onCustomerChanged(); // تحديث رصيد العميل بدون reload كامل
+            refetchPayments();
+            onCustomerChanged();
           }}
         />
       )}
-      
+
       <ConfirmDialog
         isOpen={!!deletingPayment}
         type="danger"
         title="حذف مدفوعة"
-        message={deletingPayment ? 
-          `هل أنت متأكد من حذف مدفوعة بمبلغ ${formatEGP(deletingPayment.amount)} ؟
-
-سيتم:
-• إرجاع المبلغ لرصيد العميل
-• خصم المبلغ من الخزينة
-• حذف سجل المدفوعة نهائياً
-
-هذا الإجراء لا يمكن التراجع عنه!` : ''
+        message={
+          deletingPayment
+            ? `هل أنت متأكد من حذف مدفوعة بمبلغ ${formatEGP(deletingPayment.amount)} ؟\n\nسيتم:\n• إرجاع المبلغ لرصيد العميل\n• خصم المبلغ من الخزينة\n• حذف سجل المدفوعة نهائياً`
+            : ""
         }
         confirmText="نعم، احذف"
         cancelText="إلغاء"
         onConfirm={confirmDeletePayment}
         onCancel={() => setDeletingPayment(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deletingAdjustment}
+        type="danger"
+        title="حذف حركة سلفة / تسوية"
+        message={
+          deletingAdjustment
+            ? `هل أنت متأكد من حذف ${deletingAdjustment.type === 'debit' ? 'سلفة' : 'تسوية'} بمبلغ ${formatEGP(deletingAdjustment.amount)} ج للعميل (${customerName})؟\n\nسيتم التراجع عن التأثير في رصيد العميل والخزينة.`
+            : ""
+        }
+        confirmText="نعم، احذف"
+        cancelText="إلغاء"
+        onConfirm={confirmDeleteAdjustment}
+        onCancel={() => setDeletingAdjustment(null)}
       />
     </div>
   );
@@ -561,193 +778,4 @@ function EditPaymentForm({ payment, customerId, onClose, onSaved }: {
     </div>
   );
 }
-
-/* ============================================
-   نموذج إضافة سلفة / تسوية لحساب العميل
-============================================ */
-function CustomerAdjustmentModal({
-  customerId,
-  customerName,
-  onClose,
-  onSaved,
-}: {
-  customerId: string;
-  customerName: string;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [type, setType] = useState<"debit" | "credit">("debit"); // debit = سلفة / إضافة عليه, credit = خصم منه / تسوية لصالحه
-  const [amount, setAmount] = useState<string>("");
-  const [adjustmentDate, setAdjustmentDate] = useState<string>(new Date().toISOString().split("T")[0]);
-  const [treasuryId, setTreasuryId] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [treasuries, setTreasuries] = useState<{ id: string; name: string }[]>([]);
-
-  useEffect(() => {
-    fetch("/api/treasury")
-      .then((r) => r.json())
-      .then((j) => setTreasuries(j.data?.items || j.data || []))
-      .catch(() => {});
-  }, []);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const num = Number(amount);
-    if (!num || num <= 0) {
-      alert("❌ يرجى إدخال مبلغ صحيح أكبر من الصفر");
-      return;
-    }
-    if (!notes.trim()) {
-      alert("❌ يرجى كتابة سبب / بيان العملية");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/customers/${customerId}/adjustments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: num,
-          type,
-          adjustment_date: adjustmentDate,
-          treasury_id: treasuryId || null,
-          notes: notes.trim(),
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        alert("❌ " + (json?.error?.message || "فشل في تسجيل الحركة"));
-        return;
-      }
-      alert("✅ تم تسجيل الحركة وتحديث رصيد العميل بنجاح");
-      onSaved();
-    } catch {
-      alert("❌ حدث خطأ أثناء الاتصال بالسيرفر");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-scale-up">
-        <div className="flex items-center justify-between border-b pb-3">
-          <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-            <span>💸</span>
-            <span>سلفة / إضافة مبلغ للعميل ({customerName})</span>
-          </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 font-bold p-1">✕</button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* نوع الحركة */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">نوع الحركة *</label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setType("debit")}
-                className={`p-2.5 rounded-xl border text-xs font-black flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                  type === "debit"
-                    ? "bg-rose-50 border-rose-500 text-rose-700 ring-2 ring-rose-500/20 shadow-sm"
-                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                <span>🔴 إضافة عليه / سلفة</span>
-                <span className="text-[10px] font-normal text-slate-500">(يزيد المبلغ المطلوب منه)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setType("credit")}
-                className={`p-2.5 rounded-xl border text-xs font-black flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                  type === "credit"
-                    ? "bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500/20 shadow-sm"
-                    : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                <span>🟢 خصم منه / تسوية</span>
-                <span className="text-[10px] font-normal text-slate-500">(ينقص المبلغ المطلوب منه)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* المبلغ والتاريخ */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">المبلغ (ج.م) *</label>
-              <input
-                type="number"
-                step="any"
-                min="1"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white text-sm font-black font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">التاريخ *</label>
-              <input
-                type="date"
-                value={adjustmentDate}
-                onChange={(e) => setAdjustmentDate(e.target.value)}
-                required
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-              />
-            </div>
-          </div>
-
-          {/* الخزينة */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              الخزينة {type === "debit" ? "(المصروف منها كاش)" : "(المودع بها كاش)"} (اختياري)
-            </label>
-            <select
-              value={treasuryId}
-              onChange={(e) => setTreasuryId(e.target.value)}
-              className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-            >
-              <option value="">بدون تأثير على الخزينة (تسوية حساب ورقية)</option>
-              {treasuries.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* البيان */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">البيان / سبب العملية *</label>
-            <input
-              type="text"
-              placeholder="مثال: سلفة نقدية شخصية، فرق حساب، مصاريف نقل..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              required
-              className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20"
-            />
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-black text-sm transition-all shadow-md cursor-pointer disabled:opacity-50"
-            >
-              {loading ? "جاري الحفظ..." : "تأكيد وتسجيل الحركة"}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition-all cursor-pointer"
-            >
-              إلغاء
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+

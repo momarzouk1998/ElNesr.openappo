@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/auth-server";
 
-// GET /api/customers/[id]/adjustments/[adjId]
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string; adjId: string }> }) {
+// GET /api/customers/adjustments/[adjId] — جلب تفاصيل سلفة/تسوية عميل لإصدار الإيصال
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ adjId: string }> }) {
   const profile = await getCurrentUser();
   if (!profile) return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED" } }, { status: 401 });
 
   try {
-    const { id, adjId } = await params;
+    const { adjId } = await params;
     const adjustment = await prisma.customer_adjustments.findUnique({
       where: { id: adjId },
       include: {
@@ -26,7 +26,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       },
     });
 
-    if (!adjustment || adjustment.customer_id !== id) {
+    if (!adjustment) {
       return NextResponse.json({ ok: false, error: { code: "NOT_FOUND", message: "سجل السلفة/التسوية غير موجود" } }, { status: 404 });
     }
 
@@ -39,6 +39,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       creatorName = creator?.full_name || null;
     }
 
+    // حساب الرصيد السابق والرصيد الجديد بدقة مطابقة لكشف الحساب
     let prevBalance = 0;
     let newBalance = 0;
 
@@ -96,32 +97,32 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   }
 }
 
-// DELETE /api/customers/[id]/adjustments/[adjId]
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string; adjId: string }> }) {
+// DELETE /api/customers/adjustments/[adjId] - حذف سلفة أو تسوية
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ adjId: string }> }) {
   const profile = await getCurrentUser();
-  if (!profile) {
-    return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED" } }, { status: 401 });
-  }
+  if (!profile) return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED" } }, { status: 401 });
 
   if (profile.role !== "admin" && profile.role !== "manager") {
-    return NextResponse.json({ ok: false, error: { code: "FORBIDDEN", message: "غير مصرح لك بحذف التسوية" } }, { status: 403 });
+    return NextResponse.json({ ok: false, error: { code: "FORBIDDEN", message: "غير مصرح لك بحذف الحركة" } }, { status: 403 });
   }
 
   try {
-    const { id, adjId } = await params;
+    const { adjId } = await params;
     const existing = await prisma.customer_adjustments.findUnique({
       where: { id: adjId },
     });
 
-    if (!existing || existing.customer_id !== id) {
-      return NextResponse.json({ ok: false, error: { code: "NOT_FOUND", message: "سجل التسوية غير موجود" } }, { status: 404 });
+    if (!existing) {
+      return NextResponse.json({ ok: false, error: { code: "NOT_FOUND", message: "السجل غير موجود" } }, { status: 404 });
     }
 
     await prisma.$transaction(async (tx) => {
       // Revert customer balance:
+      // If was debit (+ balance), subtract it (- amount)
+      // If was credit (- balance), add it (+ amount)
       const reverseDelta = existing.type === "debit" ? -Number(existing.amount) : Number(existing.amount);
       await tx.customers.update({
-        where: { id },
+        where: { id: existing.customer_id },
         data: {
           balance: { increment: reverseDelta },
           updated_at: new Date(),
@@ -153,7 +154,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       await tx.customer_adjustments.delete({ where: { id: adjId } });
     });
 
-    return NextResponse.json({ ok: true, message: "تم حذف حركة التسوية بنجاح وإعادة ضبط الأرصدة" });
+    return NextResponse.json({ ok: true, message: "تم حذف الحركة بنجاح وإعادة ضبط الأرصدة" });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: { code: "DB_ERROR", message: e?.message } }, { status: 500 });
   }

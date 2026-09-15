@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { useApi, useApiMutation } from "@/hooks/useApi";
 import { formatEGP } from "@/lib/format";
 
@@ -52,7 +53,21 @@ export default function TreasuryPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-650">🏦 الخزائن</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap items-center">
+          <Link
+            href="/treasury/customer-payments"
+            className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs sm:text-sm flex items-center gap-1 transition-all shadow-sm cursor-pointer"
+          >
+            <span>💰</span>
+            <span>تحصيلات وسلف العملاء</span>
+          </Link>
+          <Link
+            href="/treasury/supplier-payments"
+            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-bold text-xs sm:text-sm flex items-center gap-1 transition-all shadow-sm cursor-pointer"
+          >
+            <span>🏭</span>
+            <span>مدفوعات الموردين</span>
+          </Link>
           <button
             onClick={recalculateAll}
             disabled={recalculating}
@@ -62,7 +77,7 @@ export default function TreasuryPage() {
             <span>🔄</span>
             <span>{recalculating ? 'جاري إعادة الحساب...' : 'تصفير/إعادة حساب الأرصدة'}</span>
           </button>
-          <button onClick={() => setShowAdd(true)} className="btn-primary">+ خزينة جديدة</button>
+          <button onClick={() => setShowAdd(true)} className="btn-primary text-xs sm:text-sm">+ خزينة جديدة</button>
         </div>
       </div>
 
