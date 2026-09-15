@@ -8,6 +8,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Pass-through fetch handler for Chrome PWA criteria
-  event.respondWith(fetch(event.request));
+  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
+    return;
+  }
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return new Response('Network Error', { status: 503, statusText: 'Service Unavailable' });
+    })
+  );
 });
