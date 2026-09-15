@@ -9,34 +9,32 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   try {
     const { id } = await params;
 
-    const [customer, invoices, payments, returns, adjustments] = await Promise.all([
-      prisma.customers.findUnique({ where: { id } }),
+    const [supplier, purchases, payments, returns, adjustments] = await Promise.all([
+      prisma.suppliers.findUnique({ where: { id } }),
 
-      prisma.sales_invoices.findMany({
-        where: { customer_id: id, status: { not: "ملغاة" } },
-        orderBy: { invoice_date: "asc" },
+      prisma.purchase_invoices.findMany({
+        where: { supplier_id: id, status: { not: "ملغاة" } },
+        orderBy: { purchase_date: "asc" },
         select: {
           id: true,
-          invoice_number: true,
-          invoice_date: true,
-          total: true,
-          discount: true,
-          subtotal: true,
+          purchase_number: true,
+          purchase_date: true,
+          total_amount: true,
           status: true,
           items: {
-            select: { product_name: true, quantity: true, unit_price: true, line_total: true },
+            select: { product_name: true, quantity: true, unit_cost: true, line_total: true },
           },
         },
       }),
 
-      prisma.customer_payments.findMany({
-        where: { customer_id: id },
+      prisma.supplier_payments.findMany({
+        where: { supplier_id: id },
         orderBy: { payment_date: "asc" },
         select: { id: true, payment_date: true, amount: true, payment_method: true, notes: true },
       }),
 
-      prisma.customer_return_invoices.findMany({
-        where: { customer_id: id, status: { not: "ملغاة" } },
+      prisma.supplier_return_invoices.findMany({
+        where: { supplier_id: id, status: { not: "ملغاة" } },
         orderBy: { return_date: "asc" },
         select: {
           id: true,
@@ -44,13 +42,13 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
           return_date: true,
           total_amount: true,
           items: {
-            select: { product_name: true, quantity: true, unit_price: true, line_total: true },
+            select: { product_name: true, quantity: true, unit_cost: true, line_total: true },
           },
         },
       }),
 
-      prisma.customer_adjustments.findMany({
-        where: { customer_id: id },
+      prisma.supplier_adjustments.findMany({
+        where: { supplier_id: id },
         orderBy: { adjustment_date: "asc" },
         select: {
           id: true,
@@ -63,101 +61,102 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       }),
     ]);
 
-    if (!customer) {
+    if (!supplier) {
       return NextResponse.json({ ok: false, error: { code: "NOT_FOUND" } }, { status: 404 });
     }
 
-    let running = Number(customer.opening_balance || 0);
+    // For suppliers: balance positive means we owe them (credit), negative means they owe us (debit)
+    let running = Number(supplier.opening_balance || 0);
     let totalDebit = 0;
     let totalCredit = 0;
     const entries: any[] = [];
 
-    if (Number(customer.opening_balance || 0) !== 0) {
-      const op = Number(customer.opening_balance);
-      const isDebit = op > 0;
-      if (isDebit) totalDebit += op; else totalCredit += Math.abs(op);
+    if (Number(supplier.opening_balance || 0) !== 0) {
+      const op = Number(supplier.opening_balance);
+      const isCredit = op > 0;
+      if (isCredit) totalCredit += op; else totalDebit += Math.abs(op);
       entries.push({
         id: "opening",
         date: "1970-01-01",
         type: "opening",
         label: "رصيد افتتاحي",
         ref: "—",
-        debit: isDebit ? op : 0,
-        credit: !isDebit ? Math.abs(op) : 0,
+        debit: !isCredit ? Math.abs(op) : 0,
+        credit: isCredit ? op : 0,
         balance: running,
       });
     }
 
-    const allEvents: { date: Date; type: "invoice" | "payment" | "return" | "adjustment"; data: any }[] = [
-      ...invoices.map((i) => ({ date: new Date(i.invoice_date), type: "invoice" as const, data: i })),
-      ...payments.map((p) => ({ date: new Date(p.payment_date), type: "payment" as const, data: p })),
+    const allEvents: { date: Date; type: "purchase" | "payment" | "return" | "adjustment"; data: any }[] = [
+      ...purchases.map((p) => ({ date: new Date(p.purchase_date), type: "purchase" as const, data: p })),
+      ...payments.map((pay) => ({ date: new Date(pay.payment_date), type: "payment" as const, data: pay })),
       ...returns.map((r) => ({ date: new Date(r.return_date), type: "return" as const, data: r })),
       ...adjustments.map((a) => ({ date: new Date(a.adjustment_date), type: "adjustment" as const, data: a })),
     ].sort((a, b) => a.date.getTime() - b.date.getTime());
 
     for (const ev of allEvents) {
-      if (ev.type === "invoice") {
-        const amt = Number(ev.data.total);
+      if (ev.type === "purchase") {
+        const amt = Number(ev.data.total_amount);
         running += amt;
-        totalDebit += amt;
+        totalCredit += amt;
         entries.push({
           id: ev.data.id,
           date: ev.date.toISOString(),
-          type: "invoice",
-          label: "فاتورة مبيعات",
-          ref: `#${ev.data.invoice_number}`,
-          debit: amt,
-          credit: 0,
+          type: "purchase",
+          label: "فاتورة مشتريات",
+          ref: `#${ev.data.purchase_number}`,
+          debit: 0,
+          credit: amt,
           balance: running,
           items: ev.data.items,
         });
       } else if (ev.type === "payment") {
         const amt = Number(ev.data.amount);
         running -= amt;
-        totalCredit += amt;
+        totalDebit += amt;
         entries.push({
           id: ev.data.id,
           date: ev.date.toISOString(),
           type: "payment",
-          label: `تحصيل (${ev.data.payment_method})`,
-          ref: ev.data.notes || "تحصيل نقدية",
-          debit: 0,
-          credit: amt,
+          label: `سداد للمورد (${ev.data.payment_method})`,
+          ref: ev.data.notes || "سداد نقدية",
+          debit: amt,
+          credit: 0,
           balance: running,
         });
       } else if (ev.type === "return") {
         const amt = Number(ev.data.total_amount);
         running -= amt;
-        totalCredit += amt;
+        totalDebit += amt;
         entries.push({
           id: ev.data.id,
           date: ev.date.toISOString(),
           type: "return",
-          label: "مرتجع مبيعات",
+          label: "مرتجع مشتريات",
           ref: `#${ev.data.return_number}`,
-          debit: 0,
-          credit: amt,
+          debit: amt,
+          credit: 0,
           balance: running,
           items: ev.data.items,
         });
       } else if (ev.type === "adjustment") {
         const amt = Number(ev.data.amount);
-        const isDebit = ev.data.type === "debit"; // debit = عليه / سلفة, credit = له / تسوية
-        if (isDebit) {
+        const isCredit = ev.data.type === "credit"; // credit = إضافة له, debit = خصم منه
+        if (isCredit) {
           running += amt;
-          totalDebit += amt;
+          totalCredit += amt;
         } else {
           running -= amt;
-          totalCredit += amt;
+          totalDebit += amt;
         }
         entries.push({
           id: ev.data.id,
           date: ev.date.toISOString(),
           type: "adjustment",
-          label: isDebit ? "سلفة / إضافة على الحساب" : "تسوية / خصم من الحساب",
+          label: isCredit ? "إضافة مستحق للمورد" : "خصم / استرداد من المورد",
           ref: ev.data.notes + (ev.data.treasury?.name ? ` (${ev.data.treasury.name})` : ""),
-          debit: isDebit ? amt : 0,
-          credit: !isDebit ? amt : 0,
+          debit: !isCredit ? amt : 0,
+          credit: isCredit ? amt : 0,
           balance: running,
         });
       }
@@ -166,7 +165,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({
       ok: true,
       data: {
-        customer,
+        supplier,
         entries,
         totalDebit,
         totalCredit,

@@ -33,6 +33,7 @@ export const ALL_MODULES: AllModule[] = [
   { key: 'treasury',          label: 'الخزائن',                 icon: '🏦', path: '/treasury' },
   { key: 'expenses',          label: 'المصروفات',               icon: '📉', path: '/expenses' },
   { key: 'employees',         label: 'الموظفين والرواتب',       icon: '👷', path: '/employees' },
+  { key: 'partners',          label: 'مسحوبات الشركاء',         icon: '🤝', path: '/partners' },
   // 🔵 للمحاسب
   { key: 'reports',           label: 'التقارير',                icon: '📈', path: '/reports' },
   // 🟣 Admin only

@@ -26,6 +26,7 @@ export default async function DashboardPage() {
     totalSuppliersDebt,
     totalInventoryValue,
     totalTreasuryBalanceAgg,
+    partnerWithdrawalsAgg,
   ] = await Promise.all([
     prisma.products.count({ where: { is_active: true } }),
     prisma.customers.count({ where: { is_active: true } }),
@@ -67,6 +68,10 @@ export default async function DashboardPage() {
     prisma.treasuries.aggregate({
       where: { is_active: true },
       _sum: { current_balance: true },
+    }),
+    prisma.partner_withdrawals.aggregate({
+      _sum: { amount: true },
+      _count: true,
     }),
   ]);
 
@@ -128,6 +133,14 @@ export default async function DashboardPage() {
           value={treasuryBal}
           subValue="السيولة المتوفرة بالخزن"
           color="purple"
+          isCurrency={true}
+        />
+        <KpiCard
+          iconKey="partners"
+          label="مسحوبات الشركاء"
+          value={Number(partnerWithdrawalsAgg._sum.amount || 0)}
+          subValue={`${partnerWithdrawalsAgg._count} حركة مسحوبات`}
+          color="orange"
           isCurrency={true}
         />
       </div>

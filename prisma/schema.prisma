@@ -174,6 +174,7 @@ model customers {
   sales_invoices   sales_invoices[]
   payments         customer_payments[]
   return_invoices  customer_return_invoices[]
+  adjustments      customer_adjustments[]
 
   @@map("customers")
   @@schema("elnesr")
@@ -199,6 +200,7 @@ model suppliers {
   purchase_invoices purchase_invoices[]
   payments          supplier_payments[]
   return_invoices   supplier_return_invoices[]
+  adjustments       supplier_adjustments[]
 
   @@map("suppliers")
   @@schema("elnesr")
@@ -602,6 +604,9 @@ model treasuries {
   outgoing_checks   checks[]
   employee_advances employee_advances[]
   salary_payments   salary_payments[]
+  partner_withdrawals  partner_withdrawals[]
+  customer_adjustments customer_adjustments[]
+  supplier_adjustments supplier_adjustments[]
 
   @@map("treasuries")
   @@schema("elnesr")
@@ -780,3 +785,87 @@ model salary_payments {
   @@map("salary_payments")
   @@schema("elnesr")
 }
+
+// =======================================
+// 24. Partners (الشركاء)
+// =======================================
+model partners {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String    @db.VarChar(200)
+  phone            String?   @db.VarChar(30)
+  share_percentage Decimal?  @db.Decimal(5, 2)
+  notes            String?   @db.Text
+  is_active        Boolean   @default(true)
+  created_at       DateTime? @default(now()) @db.Timestamptz()
+  updated_at       DateTime? @default(now()) @db.Timestamptz()
+
+  withdrawals partner_withdrawals[]
+
+  @@map("partners")
+  @@schema("elnesr")
+}
+
+// =======================================
+// 25. Partner Withdrawals (مسحوبات الشركاء)
+// =======================================
+model partner_withdrawals {
+  id                 String    @id @default(uuid()) @db.Uuid
+  partner_id         String    @db.Uuid
+  amount             Decimal   @db.Decimal(15, 2)
+  withdrawal_date    DateTime  @default(now()) @db.Date
+  treasury_id        String?   @db.Uuid
+  notes              String?   @db.Text
+  created_by_user_id Int?
+  created_at         DateTime? @default(now()) @db.Timestamptz()
+
+  partner  partners    @relation(fields: [partner_id], references: [id], onDelete: Cascade)
+  treasury treasuries? @relation(fields: [treasury_id], references: [id])
+
+  @@map("partner_withdrawals")
+  @@schema("elnesr")
+}
+
+// =======================================
+// 26. Customer Adjustments (تسويات وسلف العملاء)
+// =======================================
+model customer_adjustments {
+  id                 String    @id @default(uuid()) @db.Uuid
+  customer_id        String    @db.Uuid
+  amount             Decimal   @db.Decimal(15, 2)
+  // Type: debit (سلفة / إضافة عليه) | credit (خصم منه / تسوية لصالحه)
+  type               String    @default("debit") @db.VarChar(20)
+  adjustment_date    DateTime  @default(now()) @db.Date
+  treasury_id        String?   @db.Uuid
+  notes              String?   @db.Text
+  created_by_user_id Int?
+  created_at         DateTime? @default(now()) @db.Timestamptz()
+
+  customer customers   @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  treasury treasuries? @relation(fields: [treasury_id], references: [id])
+
+  @@map("customer_adjustments")
+  @@schema("elnesr")
+}
+
+// =======================================
+// 27. Supplier Adjustments (تسويات وسلف الموردين)
+// =======================================
+model supplier_adjustments {
+  id                 String    @id @default(uuid()) @db.Uuid
+  supplier_id        String    @db.Uuid
+  amount             Decimal   @db.Decimal(15, 2)
+  // Type: credit (إضافة له / مستحق للمورد) | debit (خصم منه / سلفة مستردة)
+  type               String    @default("credit") @db.VarChar(20)
+  adjustment_date    DateTime  @default(now()) @db.Date
+  treasury_id        String?   @db.Uuid
+  notes              String?   @db.Text
+  created_by_user_id Int?
+  created_at         DateTime? @default(now()) @db.Timestamptz()
+
+  supplier suppliers   @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+  treasury treasuries? @relation(fields: [treasury_id], references: [id])
+
+  @@map("supplier_adjustments")
+  @@schema("elnesr")
+}
+

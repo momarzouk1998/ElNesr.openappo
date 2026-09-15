@@ -23,7 +23,9 @@ import {
   LogOut,
   User,
   Smartphone,
-  AlertTriangle
+  AlertTriangle,
+  Handshake,
+  Briefcase
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
@@ -36,6 +38,8 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   inventory: Package,
   treasury: Landmark,
   expenses: BarChart3,
+  employees: Briefcase,
+  partners: Handshake,
   reports: TrendingUp,
   users: UserCheck,
 };

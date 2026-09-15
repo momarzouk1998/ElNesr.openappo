@@ -23,6 +23,8 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   building: Lucide.Building,
   alert: Lucide.AlertTriangle,
   own: Lucide.Wallet,
+  partners: Lucide.Handshake,
+  coins: Lucide.Coins,
 };
 
 export function KpiCard({
