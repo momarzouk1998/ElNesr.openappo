@@ -74,7 +74,7 @@ export default function InventoryPage() {
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`px-4 py-2 text-sm font-bold transition-all border-b-2 -mb-px ${
-              tab === t.key ? 'border-nazlawy-500 text-nazlawy-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              tab === t.key ? 'border-elnesr-500 text-elnesr-600' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             {t.icon} {t.label}
@@ -384,10 +384,10 @@ function StockTab({ profile }: { profile: any }) {
               
               if (isEditing) {
                 return (
-                  <div key={i.id} className="card p-4 space-y-3 bg-amber-50/70 border-2 border-nazlawy-400 shadow-md">
-                    <div className="font-bold text-sm text-nazlawy-800 flex items-center justify-between">
+                  <div key={i.id} className="card p-4 space-y-3 bg-amber-50/70 border-2 border-elnesr-400 shadow-md">
+                    <div className="font-bold text-sm text-elnesr-800 flex items-center justify-between">
                       <span>✏️ تعديل صنف ومخزون (مباشر)</span>
-                      <span className="text-xs bg-nazlawy-100 text-nazlawy-800 px-2 py-0.5 rounded">🏢 {i.store.name}</span>
+                      <span className="text-xs bg-elnesr-100 text-elnesr-800 px-2 py-0.5 rounded">🏢 {i.store.name}</span>
                     </div>
 
                     <div>
@@ -520,7 +520,7 @@ function StockTab({ profile }: { profile: any }) {
                     </div>
                     <div className="shrink-0 text-left">
                       <div 
-                        className={`font-mono font-bold text-lg px-2 py-0.5 rounded ${lowStock ? 'text-red-600 bg-red-50' : 'text-nazlawy-600'}`}
+                        className={`font-mono font-bold text-lg px-2 py-0.5 rounded ${lowStock ? 'text-red-600 bg-red-50' : 'text-elnesr-600'}`}
                       >
                         {formatQty(i.current_stock)}
                       </div>
@@ -599,7 +599,7 @@ function StockTab({ profile }: { profile: any }) {
                   
                   if (isEditing) {
                     return (
-                      <tr key={i.id} className="border-t bg-amber-50/80 ring-2 ring-nazlawy-400">
+                      <tr key={i.id} className="border-t bg-amber-50/80 ring-2 ring-elnesr-400">
                         <td className="p-2">
                           <input
                             type="text"
@@ -734,7 +734,7 @@ function StockTab({ profile }: { profile: any }) {
                           <span>{i.store.name}</span>
                         </span>
                       </td>
-                      <td className={`p-3 font-mono font-bold text-base ${lowStock ? 'text-red-600' : 'text-nazlawy-600'}`}>
+                      <td className={`p-3 font-mono font-bold text-base ${lowStock ? 'text-red-600' : 'text-elnesr-600'}`}>
                         {formatQty(i.current_stock)}
                       </td>
                       <td className="p-3 font-mono text-xs text-gray-500">{i.reorder_level}</td>
@@ -1200,7 +1200,7 @@ function StoreFormModal({
                   checked={formData.is_active}
                   onChange={(e) => updateField('is_active', e.target.checked)}
                   disabled={loading}
-                  className="accent-nazlawy-500"
+                  className="accent-elnesr-500"
                 />
                 <span className="text-sm">مخزن نشط</span>
               </label>
@@ -1365,7 +1365,7 @@ function AdjustmentsTab({ profile }: { profile: any }) {
           {/* Mobile: كاردات */}
           <div className="space-y-2 md:hidden">
             {data?.items.map(adj => (
-              <div key={adj.id} className="card p-3 border-r-4 border-r-nazlawy-500">
+              <div key={adj.id} className="card p-3 border-r-4 border-r-elnesr-500">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="font-bold text-sm">{adj.product_name}</div>
@@ -2191,7 +2191,7 @@ function BulkAddModal({ stores, onClose, onSaved }: { stores: any[]; onClose: ()
                   <td className="p-2 border">
                     <input
                       type="text"
-                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-nazlawy-500 rounded"
+                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-elnesr-500 rounded"
                       value={item.product_name}
                       onChange={(e) => updateItem(item.id, 'product_name', e.target.value)}
                       placeholder="أدخل اسم الصنف..."
@@ -2203,12 +2203,12 @@ function BulkAddModal({ stores, onClose, onSaved }: { stores: any[]; onClose: ()
                       value={item.category}
                       onChange={(val) => updateItem(item.id, 'category', val)}
                       placeholder="الفئة..."
-                      className="text-xs py-1 border-0 focus:ring-2 focus:ring-nazlawy-500"
+                      className="text-xs py-1 border-0 focus:ring-2 focus:ring-elnesr-500"
                     />
                   </td>
                   <td className="p-2 border">
                     <select
-                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-nazlawy-500 rounded text-xs"
+                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-elnesr-500 rounded text-xs"
                       value={item.unit}
                       onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
                       disabled={loading}
@@ -2221,7 +2221,7 @@ function BulkAddModal({ stores, onClose, onSaved }: { stores: any[]; onClose: ()
                   <td className="p-2 border">
                     <input
                       type="number"
-                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-nazlawy-500 rounded text-center"
+                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-elnesr-500 rounded text-center"
                       value={item.units_per_carton}
                       onChange={(e) => updateItem(item.id, 'units_per_carton', parseInt(e.target.value) || 1)}
                       min="1"
@@ -2232,7 +2232,7 @@ function BulkAddModal({ stores, onClose, onSaved }: { stores: any[]; onClose: ()
                     <input
                       type="number"
                       step="0.01"
-                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-nazlawy-500 rounded text-center font-mono"
+                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-elnesr-500 rounded text-center font-mono"
                       value={item.default_sale_price}
                       onChange={(e) => updateItem(item.id, 'default_sale_price', parseFloat(e.target.value) || 0)}
                       min="0"
@@ -2243,7 +2243,7 @@ function BulkAddModal({ stores, onClose, onSaved }: { stores: any[]; onClose: ()
                     <input
                       type="number"
                       step="0.01"
-                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-nazlawy-500 rounded text-center font-mono"
+                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-elnesr-500 rounded text-center font-mono"
                       value={item.last_purchase_price}
                       onChange={(e) => updateItem(item.id, 'last_purchase_price', parseFloat(e.target.value) || 0)}
                       min="0"
@@ -2254,7 +2254,7 @@ function BulkAddModal({ stores, onClose, onSaved }: { stores: any[]; onClose: ()
                     <input
                       type="number"
                       step="0.01"
-                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-nazlawy-500 rounded text-center font-mono font-bold"
+                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-elnesr-500 rounded text-center font-mono font-bold"
                       value={item.quantity}
                       onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                       min="0"
@@ -2264,7 +2264,7 @@ function BulkAddModal({ stores, onClose, onSaved }: { stores: any[]; onClose: ()
                   <td className="p-2 border">
                     <input
                       type="number"
-                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-nazlawy-500 rounded text-center"
+                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-elnesr-500 rounded text-center"
                       value={item.reorder_level}
                       onChange={(e) => updateItem(item.id, 'reorder_level', parseInt(e.target.value) || 5)}
                       min="0"
@@ -2274,7 +2274,7 @@ function BulkAddModal({ stores, onClose, onSaved }: { stores: any[]; onClose: ()
                   <td className="p-2 border">
                     <input
                       type="text"
-                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-nazlawy-500 rounded text-xs"
+                      className="w-full px-2 py-1 border-0 focus:ring-2 focus:ring-elnesr-500 rounded text-xs"
                       value={item.notes}
                       onChange={(e) => updateItem(item.id, 'notes', e.target.value)}
                       placeholder="ملاحظات..."

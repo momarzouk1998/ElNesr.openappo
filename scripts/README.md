@@ -41,7 +41,7 @@ Win + X → Windows PowerShell (Admin)
 
 ### 2. الانتقال للمشروع
 ```powershell
-cd "D:\OPEN APPS\DigitalOcian Projects\elnazlawy-system"
+cd "D:\OPEN APPS\DigitalOcian Projects\ElNesr"
 ```
 
 ### 3. السماح بتنفيذ السكريبتات
@@ -65,7 +65,7 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 ```
 SSH Host:     64.226.118.40
 SSH User:     root
-Database:     elnazlawy_db
+Database:     elnesr_db
 Container:    mazaya-postgres
 ```
 
@@ -74,12 +74,12 @@ Container:    mazaya-postgres
 ## 💾 موقع النسخ الاحتياطية
 
 ```
-C:\Users\[YOUR_USERNAME]\Desktop\elnazlawy-backups\
+C:\Users\[YOUR_USERNAME]\Desktop\elnesr-backups\
 ```
 
 **الاسم تلقائياً:**
 ```
-elnazlawy_backup_YYYYMMDD_HHMMSS.dump
+elnesr_backup_YYYYMMDD_HHMMSS.dump
 ```
 
 ---

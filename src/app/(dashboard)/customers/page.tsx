@@ -43,7 +43,7 @@ export default function CustomersPage() {
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`px-4 py-2 text-sm font-bold transition-all border-b-2 -mb-px ${
-              tab === t.key ? 'border-nazlawy-500 text-nazlawy-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              tab === t.key ? 'border-elnesr-500 text-elnesr-600' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             {t.icon} {t.label}
@@ -124,7 +124,7 @@ function CustomersTab() {
                 <div
                   key={c.id}
                   onClick={() => router.push(`/customers/${c.id}`)}
-                  className="card p-3 cursor-pointer hover:border-nazlawy-500 hover:shadow-md transition-all"
+                  className="card p-3 cursor-pointer hover:border-elnesr-500 hover:shadow-md transition-all"
                 >
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="font-bold text-sm truncate flex-1">{c.name}</div>
@@ -162,7 +162,7 @@ function CustomersTab() {
                   const status = c.balance > 0.01 ? 'لم يتم السداد' : c.balance < -0.01 ? 'مدفوعات زائدة' : 'حساب خالص';
                   const statusClass = c.balance > 0.01 ? 'bg-red-100 text-red-800' : c.balance < -0.01 ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
                   return (
-                    <tr key={c.id} onClick={() => router.push(`/customers/${c.id}`)} className="border-t hover:bg-gray-50 cursor-pointer transition-colors hover:text-nazlawy-600">
+                    <tr key={c.id} onClick={() => router.push(`/customers/${c.id}`)} className="border-t hover:bg-gray-50 cursor-pointer transition-colors hover:text-elnesr-600">
                       <td className="p-3 font-semibold">{c.name}</td>
                       <td className="p-3 text-sm font-mono">{c.phone || '—'}</td>
                       <td className="p-3 font-mono text-xs">{formatEGP(c.opening_balance)}</td>
@@ -268,7 +268,7 @@ function RouteTab() {
             <button
               key={day}
               onClick={() => setSelectedDay(selectedDay === day ? "" : day)}
-              className={`card p-3 text-center transition-all ${selectedDay === day ? "ring-2 ring-nazlawy-500 bg-nazlawy-50" : "hover:shadow-md"}`}
+              className={`card p-3 text-center transition-all ${selectedDay === day ? "ring-2 ring-elnesr-500 bg-elnesr-50" : "hover:shadow-md"}`}
             >
               <div className="text-sm font-bold text-slate-650">{day}</div>
               <div className="text-xs text-gray-500">{dayCustomers.length} عميل</div>
@@ -310,14 +310,14 @@ function RouteTab() {
                 <tr key={c.id} className="border-t hover:bg-gray-50">
                   <td className="p-3 font-semibold">{c.name}</td>
                   <td className="p-3 text-xs font-mono">
-                    {c.phone && <a href={`tel:${c.phone}`} className="text-nazlawy-600 hover:underline">{c.phone}</a>}
+                    {c.phone && <a href={`tel:${c.phone}`} className="text-elnesr-600 hover:underline">{c.phone}</a>}
                     {!c.phone && "—"}
                   </td>
                   <td className="p-3 text-xs text-gray-600">{c.address || '—'}</td>
                   <td className="p-3">
                     <div className="flex gap-1 flex-wrap">
                       {c.route_days!.map(d => (
-                        <span key={d} className={`badge text-xs ${d === selectedDay ? "bg-nazlawy-100 text-nazlawy-800" : "bg-gray-100"}`}>{d}</span>
+                        <span key={d} className={`badge text-xs ${d === selectedDay ? "bg-elnesr-100 text-elnesr-800" : "bg-gray-100"}`}>{d}</span>
                       ))}
                     </div>
                   </td>

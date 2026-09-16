@@ -93,7 +93,7 @@ export default function TreasuryPage() {
         </div>
         <div className="card p-4">
           <div className="text-xs text-gray-500">إجمالي الأرصدة الحالية</div>
-          <div className="text-2xl font-extrabold text-nazlawy-600 font-mono">{formatEGP(totalBalance)} ج</div>
+          <div className="text-2xl font-extrabold text-elnesr-600 font-mono">{formatEGP(totalBalance)} ج</div>
         </div>
         <div className="card p-4">
           <div className="text-xs text-gray-500">إجمالي الأرصدة الافتتاحية</div>
@@ -116,7 +116,7 @@ export default function TreasuryPage() {
               </div>
               <div className="mt-3 pt-3 border-t">
                 <div className="text-xs text-gray-500">الرصيد الحالي</div>
-                <div className="text-2xl font-extrabold text-nazlawy-600 font-mono">{formatEGP(t.current_balance)} ج</div>
+                <div className="text-2xl font-extrabold text-elnesr-600 font-mono">{formatEGP(t.current_balance)} ج</div>
               </div>
               <div className="mt-3 flex gap-2">
                 <button onClick={() => setEditing(t)} className="flex-1 text-xs py-1.5 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold cursor-pointer">✏️ تعديل الرصيد</button>

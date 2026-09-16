@@ -41,7 +41,7 @@ export default async function MyInventoryPage() {
         </div>
         <div className="card">
           <div className="text-xs text-gray-500">تحت حد إعادة الطلب</div>
-          <div className="text-2xl font-extrabold text-nazlawy-600">{lowStock.length}</div>
+          <div className="text-2xl font-extrabold text-elnesr-600">{lowStock.length}</div>
         </div>
       </div>
 
@@ -60,7 +60,7 @@ export default async function MyInventoryPage() {
               <tr key={item.id} className="border-t hover:bg-gray-50">
                 <td className="p-3 font-semibold">{item.product.name}</td>
                 <td className="p-3">{item.store.name}</td>
-                <td className={`p-3 font-bold ${Number(item.current_stock) <= item.reorder_level ? "text-nazlawy-600" : "text-slate-650"}`}>
+                <td className={`p-3 font-bold ${Number(item.current_stock) <= item.reorder_level ? "text-elnesr-600" : "text-slate-650"}`}>
                   {formatQty(Number(item.current_stock))}
                 </td>
                 <td className="p-3">{item.reorder_level}</td>

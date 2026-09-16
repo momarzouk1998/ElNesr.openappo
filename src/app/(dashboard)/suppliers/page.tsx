@@ -40,7 +40,7 @@ export default function SuppliersPage() {
             key={t.key}
             onClick={() => setTab(t.key)}
             className={`px-4 py-2 text-sm font-bold transition-all border-b-2 -mb-px cursor-pointer ${
-              tab === t.key ? 'border-nazlawy-500 text-nazlawy-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              tab === t.key ? 'border-elnesr-500 text-elnesr-600' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             {t.icon} {t.label}
@@ -104,7 +104,7 @@ function SuppliersTab() {
               <div
                 key={s.id}
                 onClick={() => router.push(`/suppliers/${s.id}`)}
-                className="card p-3 cursor-pointer hover:border-nazlawy-500 hover:shadow-md transition-all"
+                className="card p-3 cursor-pointer hover:border-elnesr-500 hover:shadow-md transition-all"
               >
                 <div className="font-bold text-sm truncate mb-1">{s.name}</div>
                 <div className="text-xs text-gray-500 font-mono mb-1.5">{s.phone || '—'}</div>
@@ -134,7 +134,7 @@ function SuppliersTab() {
               </thead>
               <tbody>
                 {data?.items.map(s => (
-                  <tr key={s.id} onClick={() => router.push(`/suppliers/${s.id}`)} className="border-t hover:bg-gray-50 cursor-pointer transition-colors hover:text-nazlawy-600">
+                  <tr key={s.id} onClick={() => router.push(`/suppliers/${s.id}`)} className="border-t hover:bg-gray-50 cursor-pointer transition-colors hover:text-elnesr-600">
                     <td className="p-3 font-semibold">{s.name}</td>
                     <td className="p-3 text-sm font-mono">{s.phone || '—'}</td>
                     <td className="p-3 font-mono text-xs">{formatEGP(s.opening_balance)}</td>

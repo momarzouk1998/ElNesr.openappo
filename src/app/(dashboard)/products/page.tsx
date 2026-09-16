@@ -145,7 +145,7 @@ export default function ProductsPage() {
                       )}
                     </td>
                     <td className={`p-3 font-mono font-extrabold text-base ${
-                      isUnderLimit ? 'text-red-600' : 'text-nazlawy-600'
+                      isUnderLimit ? 'text-red-600' : 'text-elnesr-600'
                     }`}>
                       {formatQty(p.total_stock)}
                     </td>
@@ -411,7 +411,7 @@ function ProductEditModal({ product, onClose, onSaved }: { product: Product; onC
 
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs flex justify-between items-center text-slate-700">
           <span>📦 رصيد المخزون الفعلي الحالي:</span>
-          <span className="font-bold font-mono text-nazlawy-600 text-sm">{formatQty(product.total_stock)} {product.unit === 'piece' ? 'قطعة' : product.unit === 'box' ? 'علبة' : 'كرتونة'}</span>
+          <span className="font-bold font-mono text-elnesr-600 text-sm">{formatQty(product.total_stock)} {product.unit === 'piece' ? 'قطعة' : product.unit === 'box' ? 'علبة' : 'كرتونة'}</span>
         </div>
         <div className="flex gap-2 pt-3">
           <button onClick={save} disabled={loading || !form.name.trim()} className="btn-primary flex-1">{loading ? 'جاري الحفظ...' : 'حفظ التعديلات'}</button>

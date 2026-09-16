@@ -1,7 +1,6 @@
 // ========================================
-// Prisma Schema — ELNESR (نظام النزلاوي)
-// Migration from AppSheet → Next.js + PostgreSQL
-// Schema: elnazlawy (on shared DO Postgres, same as mazaya)
+// Prisma Schema — ELNESR (شركة النسر للأدوات واللوحات الكهربائية)
+// PostgreSQL — Schema: elnesr
 // ========================================
 
 generator client {

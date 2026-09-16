@@ -100,11 +100,11 @@ async function resolveEntityId(tableName: string, sourceId: string, fallbackMap?
   }
 
   if (isValidUuid(sourceId)) {
-    const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT id FROM elnazlawy.${tableName} WHERE id::text = $1 LIMIT 1`, sourceId);
+    const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT id FROM elnesr.${tableName} WHERE id::text = $1 LIMIT 1`, sourceId);
     if (rows[0]?.id) return rows[0].id;
   }
 
-  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT id FROM elnazlawy.${tableName} WHERE legacy_id = $1 LIMIT 1`, sourceId);
+  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT id FROM elnesr.${tableName} WHERE legacy_id = $1 LIMIT 1`, sourceId);
   return rows[0]?.id || null;
 }
 
@@ -116,7 +116,7 @@ async function resolveEntityByName(tableName: string, name: string, fallbackMap?
     return fallbackMap.get(normalizedName) || null;
   }
 
-  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT id FROM elnazlawy.${tableName} WHERE lower(trim(name)) = $1 LIMIT 1`, normalizedName);
+  const rows = await prisma.$queryRawUnsafe<any[]>(`SELECT id FROM elnesr.${tableName} WHERE lower(trim(name)) = $1 LIMIT 1`, normalizedName);
   return rows[0]?.id || null;
 }
 
@@ -125,24 +125,24 @@ async function clearData() {
 
   await runQuery(`
     TRUNCATE TABLE
-      elnazlawy.customer_payments,
-      elnazlawy.supplier_payments,
+      elnesr.customer_payments,
+      elnesr.supplier_payments,
       elnesr.inventory,
       elnesr.products,
       elnesr.customers,
       elnesr.suppliers,
-      elnazlawy.treasury_transactions,
-      elnazlawy.treasuries,
+      elnesr.treasury_transactions,
+      elnesr.treasuries,
       elnesr.stores,
-      elnazlawy.expenses,
-      elnazlawy.checks,
-      elnazlawy.sales_invoice_items,
+      elnesr.expenses,
+      elnesr.checks,
+      elnesr.sales_invoice_items,
       elnesr.sales_invoices,
-      elnazlawy.purchase_invoice_items,
+      elnesr.purchase_invoice_items,
       elnesr.purchase_invoices,
-      elnazlawy.stock_transfers,
-      elnazlawy.product_price_history,
-      elnazlawy.audit_log
+      elnesr.stock_transfers,
+      elnesr.product_price_history,
+      elnesr.audit_log
     RESTART IDENTITY CASCADE;
   `);
 
@@ -158,7 +158,7 @@ async function importData() {
     console.log('💰 Creating default treasury...');
     const treasuryId = randomUUID();
     await runQuery(
-      `INSERT INTO elnazlawy.treasuries (id, name, type, opening_balance, current_balance, is_active, created_at, updated_at)
+      `INSERT INTO elnesr.treasuries (id, name, type, opening_balance, current_balance, is_active, created_at, updated_at)
        VALUES ($1::uuid, $2, $3, $4, $5, $6, NOW(), NOW())`,
       [treasuryId, 'الخزينة الرئيسية', 'رئيسية', 0, 0, true]
     );
@@ -297,7 +297,7 @@ async function importData() {
       }
 
       await runQuery(
-        `INSERT INTO elnazlawy.customer_payments (
+        `INSERT INTO elnesr.customer_payments (
           id, payment_date, customer_id, amount, payment_method, treasury_id, notes, created_at
         ) VALUES ($1::uuid, $2, $3::uuid, $4, $5, $6::uuid, $7, NOW())`,
         [customerPaymentId, date, resolvedCustomerId, amount, getValue(row, ['Payment_Method CP', 'Payment_Method']) || 'نقدي', paymentTreasuryId, getValue(row, ['Notes CP', 'Notes']) || null]
@@ -333,7 +333,7 @@ async function importData() {
       }
 
       await runQuery(
-        `INSERT INTO elnazlawy.supplier_payments (
+        `INSERT INTO elnesr.supplier_payments (
           id, payment_date, supplier_id, amount, payment_method, treasury_id, notes, created_at
         ) VALUES ($1::uuid, $3, $2::uuid, $4, $5, $6::uuid, $7, NOW())`,
         [supplierPaymentId, resolvedSupplierId, date, amount, getValue(row, ['Payment_Method SP', 'Payment_Method']) || 'نقدي', paymentSupplierTreasuryId, getValue(row, ['Notes SP', 'Notes']) || null]

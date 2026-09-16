@@ -314,7 +314,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                       <span className="font-mono text-gray-600">{formatEGP(amt)} ج <span className="text-xs text-gray-400">({pct.toFixed(1)}%)</span></span>
                     </div>
                     <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
-                      <div className="bg-nazlawy-500 h-full transition-all" style={{ width: `${pct}%` }}></div>
+                      <div className="bg-elnesr-500 h-full transition-all" style={{ width: `${pct}%` }}></div>
                     </div>
                   </div>
                 );
@@ -366,7 +366,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                     <td className="p-2 font-semibold">{c.name}</td>
                     <td className="p-2 font-mono text-xs">{c.phone || '—'}</td>
                     <td className="p-2 text-center">{c.count}</td>
-                    <td className="p-2 font-bold text-nazlawy-600 text-left">{formatEGP(c.total)} ج</td>
+                    <td className="p-2 font-bold text-elnesr-600 text-left">{formatEGP(c.total)} ج</td>
                   </tr>
                 ))}
               </tbody>

@@ -169,14 +169,14 @@ export default function CategoryCombobox({
                 }}
                 onMouseEnter={() => setHighlightedIndex(idx)}
                 className={`px-3 py-2 text-sm cursor-pointer flex items-center justify-between transition-colors ${
-                  isHighlighted ? "bg-nazlawy-50 text-nazlawy-900 font-bold" : "text-gray-700 hover:bg-gray-50"
-                } ${isSelected ? "bg-nazlawy-100/70 text-nazlawy-800 font-extrabold" : ""}`}
+                  isHighlighted ? "bg-elnesr-50 text-elnesr-900 font-bold" : "text-gray-700 hover:bg-gray-50"
+                } ${isSelected ? "bg-elnesr-100/70 text-elnesr-800 font-extrabold" : ""}`}
               >
                 <span className="flex items-center gap-1.5">
                   <span className="text-gray-400 text-xs">📂</span>
                   <span>{cat}</span>
                 </span>
-                {isSelected && <span className="text-nazlawy-600 text-xs font-bold">✓ مُحدد</span>}
+                {isSelected && <span className="text-elnesr-600 text-xs font-bold">✓ مُحدد</span>}
               </div>
             );
           })}

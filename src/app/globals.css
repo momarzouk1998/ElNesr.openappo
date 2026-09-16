@@ -161,30 +161,6 @@
   --color-elnesr-800: #001735;
   --color-elnesr-900: #000e22;
 
-  /* Backward Compatibility */
-  --color-elhoot-50:  #eef4ff;
-  --color-elhoot-100: #dbe8fe;
-  --color-elhoot-200: #bfd7fe;
-  --color-elhoot-300: #93bbfd;
-  --color-elhoot-400: #609afa;
-  --color-elhoot-500: #0f4185;
-  --color-elhoot-600: #002b61;
-  --color-elhoot-700: #00204a;
-  --color-elhoot-800: #001735;
-  --color-elhoot-900: #000e22;
-
-  /* Backward Compatibility */
-  --color-nazlawy-50:  #eef4ff;
-  --color-nazlawy-100: #dbe8fe;
-  --color-nazlawy-200: #bfd7fe;
-  --color-nazlawy-300: #93bbfd;
-  --color-nazlawy-400: #609afa;
-  --color-nazlawy-500: #0f4185;
-  --color-nazlawy-600: #002b61;
-  --color-nazlawy-700: #00204a;
-  --color-nazlawy-800: #001735;
-  --color-nazlawy-900: #000e22;
-
   /* Font */
   --font-family-sans: var(--font-cairo, "Cairo", "Segoe UI", Tahoma, sans-serif);
 
@@ -238,7 +214,7 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply bg-nazlawy-500 hover:bg-nazlawy-600 text-white font-semibold px-5 py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-elnesr-500 hover:bg-elnesr-600 text-white font-semibold px-5 py-2.5 rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
     @apply bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 font-medium px-5 py-2.5 rounded-lg transition-all;
@@ -247,7 +223,7 @@ body {
     @apply bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg transition-all;
   }
   .input-field {
-    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nazlawy-500/40 focus:border-nazlawy-500 transition-all bg-white text-gray-900;
+    @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-elnesr-500/40 focus:border-elnesr-500 transition-all bg-white text-gray-900;
   }
   .card {
     @apply bg-white rounded-xl p-5 border border-gray-200;

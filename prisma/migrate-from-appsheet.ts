@@ -1,10 +1,10 @@
 // =============================================
-// ELNAZLAWY — AppSheet → PostgreSQL Migration
-// المصدر: ELNazlawi/current data/*.csv
-// الهدف: elnazlawy schema على DigitalOcean
+// ELNESR — AppSheet → PostgreSQL Migration
+// المصدر: ElNesr/current data/*.csv
+// الهدف: elnesr schema على DigitalOcean
 // =============================================
 // Usage:
-//   DATABASE_URL="postgresql://elnazlawy:***@127.0.0.1:15432/elnazlawy_db" \
+//   DATABASE_URL="postgresql://elnesr:***@127.0.0.1:15432/elnesr_db" \
 //   node --experimental-strip-types --no-warnings=ExperimentalWarning \
 //   prisma/migrate-from-appsheet.ts --dry-run
 //   ... --apply   لتنفيذ المهاجرة فعلياً
@@ -15,7 +15,7 @@ import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __dirname_appsheet = "D:/OPEN APPS/DigitalOcian Projects/ELNazlawi/current data";
+const __dirname_appsheet = "D:/OPEN APPS/DigitalOcian Projects/ElNesr/current data";
 
 const prisma = new PrismaClient();
 
@@ -111,7 +111,7 @@ function track(table: string, n: number) {
 
 async function main() {
   console.log(`\n${"=".repeat(60)}`);
-  console.log(`🚀 ELNAZLAWY Migration — Mode: ${DRY_RUN ? "DRY-RUN (no writes)" : "APPLY"}`);
+  console.log(`🚀 ELNESR Migration — Mode: ${DRY_RUN ? "DRY-RUN (no writes)" : "APPLY"}`);
   console.log(`${"=".repeat(60)}\n`);
 
   if (DRY_RUN) {
@@ -122,7 +122,7 @@ async function main() {
   if (APPLY && !RESUME) {
     console.log("🧹 مسح البيانات الحالية (TRUNCATE)...");
     await prisma.$executeRawUnsafe(
-      `TRUNCATE TABLE elnazlawy.audit_log, elnazlawy.treasury_transactions, elnazlawy.product_price_history, elnazlawy.customer_payments, elnazlawy.supplier_payments, elnazlawy.expenses, elnazlawy.purchase_invoice_items, elnesr.purchase_invoices, elnazlawy.sales_invoice_items, elnesr.sales_invoices, elnazlawy.stock_transfers, elnesr.inventory, elnesr.products, elnesr.customers, elnesr.suppliers, elnazlawy.treasuries, elnesr.stores, elnesr.users RESTART IDENTITY CASCADE;`
+      `TRUNCATE TABLE elnesr.audit_log, elnesr.treasury_transactions, elnesr.product_price_history, elnesr.customer_payments, elnesr.supplier_payments, elnesr.expenses, elnesr.purchase_invoice_items, elnesr.purchase_invoices, elnesr.sales_invoice_items, elnesr.sales_invoices, elnesr.stock_transfers, elnesr.inventory, elnesr.products, elnesr.customers, elnesr.suppliers, elnesr.treasuries, elnesr.stores, elnesr.users RESTART IDENTITY CASCADE;`
     );
   }
 

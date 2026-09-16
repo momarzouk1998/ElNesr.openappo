@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       FROM information_schema.tables t
       LEFT JOIN pg_stat_user_tables s
         ON s.schemaname = t.table_schema AND s.relname = t.table_name
-      WHERE t.table_schema = 'elnazlawy'
+      WHERE t.table_schema = 'elnesr'
         AND t.table_type = 'BASE TABLE'
       ORDER BY t.table_name
     `;
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     const cols = await prisma.$queryRaw<{ column_name: string; data_type: string }[]>`
       SELECT column_name, data_type
       FROM information_schema.columns
-      WHERE table_schema = 'elnazlawy' AND table_name = ${table}
+      WHERE table_schema = 'elnesr' AND table_name = ${table}
       ORDER BY ordinal_position
     `;
 
@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
     let data: any[];
     let totalCount: { count: bigint }[];
 
-    const schemaTable = `elnazlawy."${table}"`;
+    const schemaTable = `elnesr."${table}"`;
 
     if (search && textCols.length > 0) {
       const conditions = textCols

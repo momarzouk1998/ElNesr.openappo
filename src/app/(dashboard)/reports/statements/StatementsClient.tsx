@@ -103,7 +103,7 @@ export function StatementsClient({ type: initialType, parties, selected, transac
           <Link
             href="/print/statement/all-customers"
             target="_blank"
-            className="bg-nazlawy-50 text-nazlawy-700 border border-nazlawy-200 px-4 py-2 rounded-lg font-bold text-sm hover:bg-nazlawy-100 transition-colors flex items-center gap-1.5"
+            className="bg-elnesr-50 text-elnesr-700 border border-elnesr-200 px-4 py-2 rounded-lg font-bold text-sm hover:bg-elnesr-100 transition-colors flex items-center gap-1.5"
           >
             👥 كل العملاء
           </Link>
@@ -122,11 +122,11 @@ export function StatementsClient({ type: initialType, parties, selected, transac
         <div className="flex gap-2">
           <button
             onClick={() => changeType('customer')}
-            className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-colors ${type === 'customer' ? 'bg-nazlawy-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-colors ${type === 'customer' ? 'bg-elnesr-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
           >👥 عميل</button>
           <button
             onClick={() => changeType('supplier')}
-            className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-colors ${type === 'supplier' ? 'bg-nazlawy-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-colors ${type === 'supplier' ? 'bg-elnesr-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
           >🏭 مورد</button>
         </div>
         <input
@@ -143,7 +143,7 @@ export function StatementsClient({ type: initialType, parties, selected, transac
               <button
                 key={p.id}
                 onClick={() => { setSearch(''); selectParty(p.id); }}
-                className="w-full text-right p-2 hover:bg-nazlawy-50 border-b last:border-b-0 text-sm flex justify-between items-center"
+                className="w-full text-right p-2 hover:bg-elnesr-50 border-b last:border-b-0 text-sm flex justify-between items-center"
               >
                 <div>
                   <div className="font-semibold">{p.name}</div>

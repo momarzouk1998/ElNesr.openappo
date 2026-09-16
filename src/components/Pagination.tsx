@@ -72,7 +72,7 @@ export default function Pagination({ total, page, pageSize, baseUrl }: Paginatio
             disabled={typeof p === "string"}
             className={`px-3 py-1.5 text-sm border rounded-lg ${
               p === page
-                ? "bg-nazlawy-500 text-white border-nazlawy-500"
+                ? "bg-elnesr-500 text-white border-elnesr-500"
                 : "border-gray-300 hover:bg-gray-50 disabled:opacity-50"
             }`}
           >

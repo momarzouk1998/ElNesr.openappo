@@ -56,7 +56,7 @@ function TabBtn({ active, onClick, color, children }: {
 }) {
   const activeClass = color === "violet"
     ? "border-purple-500 text-purple-700 bg-purple-50"
-    : "border-nazlawy-500 text-nazlawy-600 bg-nazlawy-50";
+    : "border-elnesr-500 text-elnesr-600 bg-elnesr-50";
   return (
     <button onClick={onClick}
       className={`px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap flex-1 sm:flex-initial ${
@@ -103,7 +103,7 @@ function PurchasesTab({ isAdmin }: { isAdmin: boolean }) {
           <div className="space-y-2 md:hidden">
             {data?.items.map(inv => (
               <div key={inv.id} onClick={() => setOpenInvoice(inv.id)}
-                className="card p-3 cursor-pointer hover:border-nazlawy-500 hover:shadow-md transition-all">
+                className="card p-3 cursor-pointer hover:border-elnesr-500 hover:shadow-md transition-all">
                 <div className="flex items-start justify-between mb-1.5">
                   <div className="font-mono font-bold text-purple-700 text-lg">#{inv.purchase_number}</div>
                   <span className={`badge ${statusColor(inv.status)}`}>{inv.status}</span>
@@ -111,7 +111,7 @@ function PurchasesTab({ isAdmin }: { isAdmin: boolean }) {
                 <div className="text-xs text-gray-500 mb-1.5">{formatDate(inv.purchase_date)}</div>
                 <div className="flex items-center justify-between">
                   <div className="font-semibold text-sm truncate flex-1">{inv.supplier?.name || "—"}</div>
-                  <div className="font-bold text-nazlawy-600 text-base shrink-0 ml-2">{formatEGP(inv.total_amount)} ج</div>
+                  <div className="font-bold text-elnesr-600 text-base shrink-0 ml-2">{formatEGP(inv.total_amount)} ج</div>
                 </div>
               </div>
             ))}
@@ -131,7 +131,7 @@ function PurchasesTab({ isAdmin }: { isAdmin: boolean }) {
               <tbody>
                 {data?.items.map(inv => (
                   <tr key={inv.id} onClick={() => setOpenInvoice(inv.id)}
-                    className="border-t hover:bg-nazlawy-50 cursor-pointer transition-colors">
+                    className="border-t hover:bg-elnesr-50 cursor-pointer transition-colors">
                     <td className="p-3 font-mono font-bold">#{inv.purchase_number}</td>
                     <td className="p-3 text-xs">{formatDate(inv.purchase_date)}</td>
                     <td className="p-3 font-semibold">{inv.supplier?.name || "—"}</td>
@@ -398,7 +398,7 @@ function PurchaseDetailsModal({ invoiceId, isAdmin, onClose, onChanged }: {
             ))}
           </tbody>
         </table>
-        <div className="flex justify-between text-lg font-extrabold border-t pt-2 text-nazlawy-600">
+        <div className="flex justify-between text-lg font-extrabold border-t pt-2 text-elnesr-600">
           <span>الإجمالي:</span><span className="font-mono">{formatEGP(Number(inv.total_amount))} ج</span>
         </div>
         {inv.notes && <div className="text-xs text-gray-600 border-t pt-2">📝 {inv.notes}</div>}

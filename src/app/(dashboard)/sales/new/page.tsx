@@ -326,7 +326,7 @@ export default function POSPage() {
                   key={p.id}
                   type="button"
                   onClick={() => addToCart(p)}
-                  className="card text-right transition-all p-3 hover:border-nazlawy-500 hover:shadow-lg bg-white border border-gray-100"
+                  className="card text-right transition-all p-3 hover:border-elnesr-500 hover:shadow-lg bg-white border border-gray-100"
                 >
                   <div className="font-bold text-sm text-gray-800 line-clamp-2">{p.name}</div>
                   <div className="mt-2 space-y-0.5">
@@ -366,7 +366,7 @@ export default function POSPage() {
           <div>
             <label className="text-xs font-bold text-gray-700 block mb-1">🏢 مخزن البيع *</label>
             <select
-              className="input-field text-sm font-bold border-nazlawy-500 bg-orange-50/40"
+              className="input-field text-sm font-bold border-elnesr-500 bg-orange-50/40"
               value={primaryStoreId}
               onChange={(e) => setPrimaryStoreId(e.target.value)}
             >
@@ -467,7 +467,7 @@ export default function POSPage() {
                     </div>
                     <div>
                       <label className="text-[10px] text-gray-500 block mb-0.5">الإجمالي</label>
-                      <div className="text-xs font-bold text-nazlawy-600 text-center p-1 bg-white rounded border">{formatEGP((parseFloat(c.quantity) || 0) * (parseFloat(c.unit_price) || 0))}</div>
+                      <div className="text-xs font-bold text-elnesr-600 text-center p-1 bg-white rounded border">{formatEGP((parseFloat(c.quantity) || 0) * (parseFloat(c.unit_price) || 0))}</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-1 items-center">
@@ -521,7 +521,7 @@ export default function POSPage() {
             />
           </div>
           <div className="flex justify-between text-base font-extrabold border-t pt-1.5 text-slate-800">
-            <span>صافي الفاتورة:</span><span className="text-nazlawy-600 font-mono">{formatEGP(total)} ج</span>
+            <span>صافي الفاتورة:</span><span className="text-elnesr-600 font-mono">{formatEGP(total)} ج</span>
           </div>
 
           {/* حقول الدفع الفوري — فقط لو مكتملة (قيد التنفيذ لا يسجل مدفوعات حقيقية) */}
@@ -584,7 +584,7 @@ export default function POSPage() {
               </div>
               <div className="flex justify-between items-center text-gray-700 font-bold pt-1.5 border-t border-slate-200">
                 <span>المتبقي على العميل:</span>
-                <span className="font-mono text-nazlawy-700 font-extrabold text-sm">
+                <span className="font-mono text-elnesr-700 font-extrabold text-sm">
                   {formatEGP(Number(selectedCustomer.balance || 0) + (Number(total || 0) - Number(paidAmount || 0)))} ج
                 </span>
               </div>

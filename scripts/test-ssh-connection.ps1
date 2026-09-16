@@ -44,7 +44,7 @@ if ($dockerStatus -match "mazaya-postgres") {
 Write-Host ""
 Write-Host "4️⃣  اختبار قاعدة البيانات..." -ForegroundColor Yellow
 $dbTest = ssh -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" `
-    "docker exec mazaya-postgres psql -U elnazlawy -d elnazlawy_db -c 'SELECT NOW();'" 2>&1
+    "docker exec mazaya-postgres psql -U elnesr -d elnesr_db -c 'SELECT NOW();'" 2>&1
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "   ✓ قاعدة البيانات متصلة" -ForegroundColor Green
@@ -58,7 +58,7 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host ""
 Write-Host "5️⃣  إحصائيات قاعدة البيانات الحالية..." -ForegroundColor Yellow
 ssh -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" `
-    "docker exec mazaya-postgres psql -U elnazlawy -d elnazlawy_db -c 'SELECT COUNT(*) FROM elnesr.customers;'" 2>&1 | `
+    "docker exec mazaya-postgres psql -U elnesr -d elnesr_db -c 'SELECT COUNT(*) FROM elnesr.customers;'" 2>&1 | `
     ForEach-Object { Write-Host "   العملاء: $_" }
 
 Write-Host ""

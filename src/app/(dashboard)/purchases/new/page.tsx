@@ -134,11 +134,11 @@ export default function NewPurchasePage() {
             <button
               key={p.id}
               onClick={() => addToCart(p)}
-              className="card text-right hover:border-nazlawy-500 hover:shadow-lg transition-all p-3"
+              className="card text-right hover:border-elnesr-500 hover:shadow-lg transition-all p-3"
             >
               <div className="font-semibold text-sm line-clamp-2">{p.name}</div>
               <div className="flex items-center justify-between mt-2 text-xs">
-                <span className="text-nazlawy-600 font-bold">آخر سعر: {formatEGP(p.last_purchase_price)} ج</span>
+                <span className="text-elnesr-600 font-bold">آخر سعر: {formatEGP(p.last_purchase_price)} ج</span>
                 <span className="font-mono text-gray-600">متاح: {formatQty(p.total_stock)}</span>
               </div>
             </button>
@@ -236,7 +236,7 @@ export default function NewPurchasePage() {
                     </div>
                     <div>
                       <label className="text-[10px] text-gray-500 block mb-0.5">الإجمالي</label>
-                      <div className="text-xs font-bold text-nazlawy-600 text-center p-1 bg-white rounded border">{formatEGP(c.quantity * c.unit_cost)}</div>
+                      <div className="text-xs font-bold text-elnesr-600 text-center p-1 bg-white rounded border">{formatEGP(c.quantity * c.unit_cost)}</div>
                     </div>
                   </div>
                   <div className="mt-1">
@@ -261,7 +261,7 @@ export default function NewPurchasePage() {
 
         <div className="card space-y-2">
           <div className="flex justify-between text-lg font-extrabold border-t pt-2">
-            <span>الإجمالي:</span><span className="text-nazlawy-600">{formatEGP(total)} ج</span>
+            <span>الإجمالي:</span><span className="text-elnesr-600">{formatEGP(total)} ج</span>
           </div>
           <textarea className="input-field text-xs" rows={2} placeholder="ملاحظات (اختياري)" value={notes} onChange={(e) => setNotes(e.target.value)} />
           <button onClick={save} disabled={saving || cart.length === 0} className="btn-primary w-full">

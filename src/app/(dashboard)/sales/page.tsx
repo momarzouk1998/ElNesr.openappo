@@ -46,7 +46,7 @@ export default function SalesPage() {
     <div className="space-y-4">
       {/* Tab bar */}
       <div className="flex gap-0 border-b border-gray-200 overflow-x-auto whitespace-nowrap">
-        <TabBtn active={tab === "sales"} onClick={() => setTab("sales")} color="nazlawy">
+        <TabBtn active={tab === "sales"} onClick={() => setTab("sales")} color="elnesr">
           🛒 فواتير المبيعات
         </TabBtn>
         <TabBtn active={tab === "returns"} onClick={() => setTab("returns")} color="orange">
@@ -65,7 +65,7 @@ function TabBtn({ active, onClick, color, children }: {
 }) {
   const activeClass = color === "orange"
     ? "border-orange-500 text-orange-600 bg-orange-50"
-    : "border-nazlawy-500 text-nazlawy-600 bg-nazlawy-50";
+    : "border-elnesr-500 text-elnesr-600 bg-elnesr-50";
   return (
     <button
       onClick={onClick}
@@ -173,7 +173,7 @@ function SalesTab({ isAdmin }: { isAdmin: boolean }) {
               <div key={inv.id} className="card p-3">
                 <div onClick={() => { setOpenInvoice(inv); setOpenEditMode(false); }} className="cursor-pointer">
                   <div className="flex items-start justify-between mb-1.5">
-                    <div className="font-mono font-bold text-nazlawy-600 text-lg">#{inv.invoice_number}</div>
+                    <div className="font-mono font-bold text-elnesr-600 text-lg">#{inv.invoice_number}</div>
                     <span className={`badge ${statusColor(inv.status)}`}>{inv.status}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
@@ -181,7 +181,7 @@ function SalesTab({ isAdmin }: { isAdmin: boolean }) {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="font-semibold text-sm truncate flex-1">{inv.customer?.name || "—"}</div>
-                    <div className="font-bold text-nazlawy-600 text-base shrink-0 ml-2">{formatEGP(inv.total)} ج</div>
+                    <div className="font-bold text-elnesr-600 text-base shrink-0 ml-2">{formatEGP(inv.total)} ج</div>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-2 pt-2 border-t" onClick={e => e.stopPropagation()}>
@@ -229,14 +229,14 @@ function SalesTab({ isAdmin }: { isAdmin: boolean }) {
               </thead>
               <tbody>
                 {data?.items.map(inv => (
-                  <tr key={inv.id} onClick={() => { setOpenInvoice(inv); setOpenEditMode(false); }} className="border-t hover:bg-nazlawy-50 cursor-pointer transition-colors">
-                    <td className="p-3 font-mono font-bold text-nazlawy-600">#{inv.invoice_number}</td>
+                  <tr key={inv.id} onClick={() => { setOpenInvoice(inv); setOpenEditMode(false); }} className="border-t hover:bg-elnesr-50 cursor-pointer transition-colors">
+                    <td className="p-3 font-mono font-bold text-elnesr-600">#{inv.invoice_number}</td>
                     <td className="p-3 text-xs">{formatDate(inv.invoice_date)}</td>
                     <td className="p-3 text-xs">{inv.invoice_type}</td>
                     <td className="p-3 font-semibold text-slate-800">{inv.customer?.name || "—"}</td>
                     <td className="p-3 text-xs text-gray-500">{inv.store?.name || "—"}</td>
                     <td className="p-3 text-center">{inv._count.items}</td>
-                    <td className="p-3 font-bold text-nazlawy-600">{formatEGP(inv.total)} ج</td>
+                    <td className="p-3 font-bold text-elnesr-600">{formatEGP(inv.total)} ج</td>
                     <td className="p-3"><span className={`badge ${statusColor(inv.status)}`}>{inv.status}</span></td>
                     <td className="p-3" onClick={e => e.stopPropagation()}>
                       <div className="flex gap-2 items-center">
@@ -519,7 +519,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
     return (
       <ModalShell onClose={onClose} wide>
         <div className="p-8 text-center space-y-3">
-          <div className="w-8 h-8 border-4 border-nazlawy-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-4 border-elnesr-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-sm font-bold text-gray-600">جاري فتح الفاتورة...</p>
         </div>
       </ModalShell>
@@ -742,7 +742,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
                     <span className="text-xs text-gray-500">السعر:</span>
                     <input type="number" min={0} step="any" value={it.unit_price === 0 ? '' : it.unit_price} onChange={e => updateItem(i, "unit_price", parseFloat(e.target.value) || 0)} className="input-field text-xs p-1.5 w-24 text-center" />
                   </div>
-                  <div className="text-xs font-mono font-bold w-24 text-left text-nazlawy-600">{formatEGP(Number(it.quantity) * Number(it.unit_price))} ج</div>
+                  <div className="text-xs font-mono font-bold w-24 text-left text-elnesr-600">{formatEGP(Number(it.quantity) * Number(it.unit_price))} ج</div>
                   <button onClick={() => removeItem(i)} className="text-red-500 hover:text-red-700 text-sm px-2">✕</button>
                 </div>
               ))}
@@ -1179,7 +1179,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
                       <div className="font-semibold text-sm text-gray-800">{p.name}</div>
                       <div className="text-xs text-gray-500">{formatEGP(p.default_sale_price)} ج</div>
                     </div>
-                    <span className="text-xs font-bold text-nazlawy-600 bg-nazlawy-50 px-2 py-1 rounded">+ إضافة</span>
+                    <span className="text-xs font-bold text-elnesr-600 bg-elnesr-50 px-2 py-1 rounded">+ إضافة</span>
                   </button>
                 ))
               ) : (

@@ -166,8 +166,8 @@ function normalizeArabic(text: string): string {
               onClick={() => choose(opt)}
               onMouseEnter={() => setHighlight(i)}
               className={`w-full text-right px-3 py-2 text-sm border-b border-gray-50 last:border-b-0 ${
-                i === highlight ? "bg-nazlawy-50 text-nazlawy-700" : "hover:bg-gray-50"
-              } ${opt.id === value ? "font-bold text-nazlawy-600" : ""}`}
+                i === highlight ? "bg-elnesr-50 text-elnesr-700" : "hover:bg-gray-50"
+              } ${opt.id === value ? "font-bold text-elnesr-600" : ""}`}
             >
               <div className="font-semibold">{opt.name}</div>
               {(opt.sub || opt.extra) && (

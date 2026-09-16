@@ -591,7 +591,7 @@ function InvoicesSection({ customerId }: { customerId: string }) {
                 <tr key={inv.id} className="border-t hover:bg-gray-50">
                   <td className="p-3 font-mono font-bold">#{inv.invoice_number}</td>
                   <td className="p-3 text-xs">{formatDate(inv.invoice_date)}</td>
-                  <td className="p-3 font-bold text-nazlawy-600">{formatEGP(inv.total)}</td>
+                  <td className="p-3 font-bold text-elnesr-600">{formatEGP(inv.total)}</td>
                   <td className="p-3"><span className={`badge ${statusColor(inv.status)}`}>{inv.status}</span></td>
                 </tr>
               ))}
