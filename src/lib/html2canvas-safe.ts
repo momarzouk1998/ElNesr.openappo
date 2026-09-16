@@ -96,14 +96,17 @@ export function sanitizeCssColor(str: string): string {
 
 function wrapStyleDeclaration(cs: CSSStyleDeclaration): CSSStyleDeclaration {
   return new Proxy(cs, {
-    get(target, prop, receiver) {
+    get(target, prop) {
       if (prop === "getPropertyValue") {
         return (cssProp: string) => {
           const val = target.getPropertyValue(cssProp);
           return sanitizeCssColor(val);
         };
       }
-      const origVal = Reflect.get(target, prop, receiver);
+      // ⚠️ لازم نقرأ الخاصية من الـ target نفسه مش عن طريق Reflect.get بالـ receiver،
+      // لأن receiver هنا هو الـ Proxy، وخصائص زي length بتتنفّذ بـ this = Proxy
+      // فيرمي المتصفح TypeError: Illegal invocation ويفشل تصوير الإيصال بالكامل.
+      const origVal = (target as any)[prop];
       if (typeof origVal === "function") {
         return origVal.bind(target);
       }

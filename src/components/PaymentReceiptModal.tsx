@@ -85,7 +85,10 @@ export default function PaymentReceiptModal({ paymentId, adjustmentId, onClose }
   const handleShareWhatsapp = async () => {
     if (sharingWhatsapp) return;
     const element = document.getElementById("receipt-sheet-" + activeId);
-    if (!element) return;
+    if (!element) {
+      alert("❌ تعذر العثور على محتوى الإيصال");
+      return;
+    }
     try {
       setSharingWhatsapp(true);
 
@@ -143,7 +146,10 @@ export default function PaymentReceiptModal({ paymentId, adjustmentId, onClose }
   const handleDownloadImage = async () => {
     if (downloadingImage) return;
     const element = document.getElementById("receipt-sheet-" + activeId);
-    if (!element) return;
+    if (!element) {
+      alert("❌ تعذر العثور على محتوى الإيصال");
+      return;
+    }
     try {
       setDownloadingImage(true);
       const canvas = await captureElementToCanvas(element, { scale: 2 });
