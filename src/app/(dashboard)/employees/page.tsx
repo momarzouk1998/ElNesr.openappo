@@ -124,10 +124,17 @@ export default function EmployeesPage() {
         trRes.json(),
       ]);
 
-      if (empData.ok) setEmployees(empData.data);
-      if (advData.ok) setAdvances(advData.data);
-      if (salData.ok) setSalaries(salData.data);
-      if (trData.ok) setTreasuries(trData.data);
+      if (empData.ok) setEmployees(Array.isArray(empData.data) ? empData.data : empData.data?.items || []);
+      if (advData.ok) setAdvances(Array.isArray(advData.data) ? advData.data : advData.data?.items || []);
+      if (salData.ok) setSalaries(Array.isArray(salData.data) ? salData.data : salData.data?.items || []);
+      if (trData.ok) {
+        const trList = Array.isArray(trData.data?.items)
+          ? trData.data.items
+          : Array.isArray(trData.data)
+          ? trData.data
+          : [];
+        setTreasuries(trList);
+      }
     } catch (err) {
       console.error("Error loading employees data:", err);
     } finally {
@@ -224,7 +231,7 @@ export default function EmployeesPage() {
       employee_id: emp.id,
       amount: "",
       advance_date: new Date().toISOString().slice(0, 10),
-      treasury_id: treasuries.length > 0 ? treasuries[0].id : "",
+      treasury_id: Array.isArray(treasuries) && treasuries.length > 0 ? treasuries[0].id : "",
       notes: "",
     });
     setErrorMsg("");
@@ -270,7 +277,7 @@ export default function EmployeesPage() {
       pending_advances: emp.pending_advances_total,
       bonuses: "",
       deductions: "",
-      treasury_id: treasuries.length > 0 ? treasuries[0].id : "",
+      treasury_id: Array.isArray(treasuries) && treasuries.length > 0 ? treasuries[0].id : "",
       payment_date: new Date().toISOString().slice(0, 10),
       notes: "",
     });
@@ -945,7 +952,7 @@ export default function EmployeesPage() {
                   className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-600 outline-none"
                 >
                   <option value="">اختر الخزينة...</option>
-                  {treasuries.map((tr) => (
+                  {(Array.isArray(treasuries) ? treasuries : []).map((tr) => (
                     <option key={tr.id} value={tr.id}>
                       {tr.name} (الرصيد الحالي: {formatEGP(tr.current_balance)})
                     </option>
@@ -1022,7 +1029,7 @@ export default function EmployeesPage() {
                   className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-600 outline-none"
                 >
                   <option value="">اختر الموظف...</option>
-                  {employees.map((emp) => (
+                  {(Array.isArray(employees) ? employees : []).map((emp) => (
                     <option key={emp.id} value={emp.id}>
                       {emp.name} (أساسي: {formatEGP(emp.basic_salary)} | سلف: {formatEGP(emp.pending_advances_total)})
                     </option>
@@ -1109,7 +1116,7 @@ export default function EmployeesPage() {
                     className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-600 outline-none"
                   >
                     <option value="">اختر الخزينة...</option>
-                    {treasuries.map((tr) => (
+                    {(Array.isArray(treasuries) ? treasuries : []).map((tr) => (
                       <option key={tr.id} value={tr.id}>
                         {tr.name} ({formatEGP(tr.current_balance)})
                       </option>
