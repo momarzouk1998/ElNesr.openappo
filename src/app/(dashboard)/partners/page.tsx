@@ -53,6 +53,8 @@ export default function PartnersPage() {
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [showAddWithdrawal, setShowAddWithdrawal] = useState<boolean>(false);
   const [deletingWithdrawal, setDeletingWithdrawal] = useState<WithdrawalItem | null>(null);
+  const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | "all" | null>(null);
+  const [resetLoading, setResetLoading] = useState<boolean>(false);
 
   // Load Partners list
   const loadPartners = useCallback(async () => {
@@ -153,6 +155,34 @@ export default function PartnersPage() {
     }
   }
 
+  // Handle Reset Partner Account(s)
+  async function confirmResetPartnerAccount() {
+    if (!resetTarget) return;
+    setResetLoading(true);
+    try {
+      const partnerId = resetTarget === "all" ? undefined : resetTarget.id;
+      const res = await fetch("/api/partners/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ partner_id: partnerId }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        alert("❌ " + (json?.error?.message || "فشل في تصفير الحساب"));
+        return;
+      }
+      alert("✅ " + (json.message || "تم تصفير الحساب بنجاح"));
+      setResetTarget(null);
+      loadWithdrawals();
+      loadPartners();
+      loadTreasuries();
+    } catch {
+      alert("❌ حدث خطأ غير متوقع أثناء تصفير الحساب");
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
@@ -168,6 +198,14 @@ export default function PartnersPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setResetTarget(selectedPartnerId ? { id: selectedPartnerId, name: partners.find(p => p.id === selectedPartnerId)?.name || "الشريك المحدد" } : "all")}
+            className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm border border-rose-200"
+            title="تصفير مسحوبات الشركاء وحذف السجلات صامتاً دون التأثير على الخزينة"
+          >
+            <Lucide.RotateCcw className="w-4 h-4 text-rose-600" />
+            <span>{selectedPartnerId ? "تصفير حساب الشريك المحدد" : "تصفير الحسابات"}</span>
+          </button>
           <button
             onClick={() => setShowAddPartner(true)}
             className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm border border-slate-200"
@@ -248,10 +286,20 @@ export default function PartnersPage() {
                           e.stopPropagation();
                           setEditingPartner(p);
                         }}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-all cursor-pointer"
                         title="تعديل بيانات الشريك"
                       >
                         <Lucide.Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setResetTarget({ id: p.id, name: p.name });
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                        title={`تصفير مسحوبات ${p.name}`}
+                      >
+                        <Lucide.RotateCcw className="w-3.5 h-3.5" />
                       </button>
                     </div>
                     <div className="text-lg md:text-xl font-black text-slate-900 font-mono mt-1">
@@ -525,6 +573,59 @@ export default function PartnersPage() {
         onConfirm={confirmDeleteWithdrawal}
         onCancel={() => setDeletingWithdrawal(null)}
       />
+
+      {/* Confirm Reset Partner Account Dialog */}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border-2 border-rose-200 animate-fade-in">
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-3">
+                <Lucide.RotateCcw className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900 mb-1">
+                {resetTarget === "all" ? "تصفير جميع حسابات الشركاء" : `تصفير حساب (${resetTarget.name})`}
+              </h3>
+              <p className="text-xs text-slate-500 font-semibold mb-3">
+                حذف صامت لسجلات وحركات المسحوبات بدون المساس بالخزينة
+              </p>
+              <div className="p-3.5 bg-rose-50 rounded-xl border border-rose-200/80 text-rose-800 text-xs text-right space-y-2 leading-relaxed font-semibold">
+                <p>⚠️ <strong>تأكيد العملية:</strong></p>
+                <ul className="list-disc list-inside space-y-1 text-slate-700 font-medium">
+                  <li>سيتم مسح كافة حركات وسجلات المسحوبات {resetTarget === "all" ? "لجميع الشركاء" : `للشريك (${resetTarget.name})`} ليصبح الرصيد <strong>0 ج.م</strong>.</li>
+                  <li>بيانات الشركاء المسجلين ونسبهم ستبقى محفوظة كما هي.</li>
+                  <li><strong>لن يتم استرجاع أي مبالغ للخزينة أو تعديل رصيد الخزائن الحالي.</strong></li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                disabled={resetLoading}
+                onClick={() => setResetTarget(null)}
+                className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-bold text-sm transition-colors cursor-pointer disabled:opacity-50"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                disabled={resetLoading}
+                onClick={confirmResetPartnerAccount}
+                className="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-colors shadow-md shadow-rose-600/20 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {resetLoading ? (
+                  <>
+                    <Lucide.Loader2 className="w-4 h-4 animate-spin" />
+                    <span>جاري التصفير...</span>
+                  </>
+                ) : (
+                  <span>نعم، تصفير الحساب</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
