@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatEGP, formatDate } from "@/lib/format";
 import * as Lucide from "lucide-react";
@@ -48,6 +48,7 @@ interface StatementData {
 
 export default function TreasuryStatementPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
 
   const [data, setData] = useState<StatementData | null>(null);
@@ -83,12 +84,12 @@ export default function TreasuryStatementPage() {
       const res = await fetch(`/api/treasury/${id}/statement?${q.toString()}`);
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        setError(json?.error?.message || "فشل تحميل كشف الحساب");
+        setError(json?.error?.message || "فشل تحميل كشف الخزينة");
         return;
       }
       setData(json.data);
-    } catch {
-      setError("حدث خطأ أثناء الاتصال بالخادم");
+    } catch (e: any) {
+      setError("حدث خطأ أثناء تحميل كشف الحساب");
     } finally {
       setLoading(false);
     }
@@ -98,13 +99,11 @@ export default function TreasuryStatementPage() {
     loadStatement();
   }, [loadStatement]);
 
-  // Submit direct deposit or withdrawal
-  async function handleDirectTransaction(e: React.FormEvent) {
+  // Handle Save Direct Transaction from inside Statement page
+  async function handleSaveDirectTx(e: React.FormEvent) {
     e.preventDefault();
-    if (!showTxModal || !txAmount || Number(txAmount) <= 0) {
-      alert("يرجى إدخال مبلغ صحيح");
-      return;
-    }
+    if (!showTxModal) return;
+    if (!txAmount || Number(txAmount) <= 0) return alert("يرجى إدخال مبلغ صحيح أكبر من الصفر");
 
     setTxSubmitting(true);
     try {
@@ -116,8 +115,8 @@ export default function TreasuryStatementPage() {
           type: showTxModal,
           amount: Number(txAmount),
           transaction_date: txDate,
-          title: txTitle,
-          notes: txNotes,
+          title: txTitle.trim(),
+          notes: txNotes.trim(),
         }),
       });
 
@@ -140,95 +139,72 @@ export default function TreasuryStatementPage() {
     }
   }
 
-  // Copy WhatsApp Formatted Statement
-  function copyWhatsAppReport() {
+  // Generate and copy WhatsApp Formatted Statement
+  function copyWhatsAppStatement() {
     if (!data) return;
 
-    const tr = data.treasury;
+    const t = data.treasury;
     const s = data.summary;
-    const periodText =
-      fromDate || toDate
-        ? `من ${fromDate || "البداية"} إلى ${toDate || "اليوم"}`
-        : "كامل الحركات التاريخية";
+    const fPeriod = fromDate || toDate ? `من ${fromDate || 'البداية'} إلى ${toDate || 'الآن'}` : "كامل الفترة";
 
-    const recentItems = (data.items || []).slice(0, 15);
-    const itemsLines = recentItems
-      .map((item) => {
-        const isPlus = item.amountIn > 0;
-        const sign = isPlus ? "🟢 +" : "🔴 -";
-        const amt = isPlus ? item.amountIn : item.amountOut;
-        return `• ${formatDate(item.date)} | ${sign}${formatEGP(amt)} ج\n   └ ${item.label}${item.notes && item.notes !== "—" ? ` (${item.notes})` : ""}`;
-      })
-      .join("\n");
+    let text = `🦅 *شركة النسر للأدوات واللوحات الكهربائية*\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `🏦 *كشف حساب خزينة:* ${t.name} (${t.type})\n`;
+    if (t.assigned_user) text += `👤 *المسئول:* ${t.assigned_user}\n`;
+    text += `📅 *الفترة:* ${fPeriod}\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `💵 *الرصيد الافتتاحي:* ${formatEGP(s.opening_balance)} ج.م\n`;
+    text += `🟢 *إجمالي الوارد (+):* ${formatEGP(s.period_in)} ج.م\n`;
+    text += `🔴 *إجمالي المنصرف (-):* ${formatEGP(s.period_out)} ج.م\n`;
+    text += `⚖️ *صافي حركة الفترة:* ${formatEGP(s.period_net)} ج.م\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `💰 *الرصيد الحالي بالخزينة:* ${formatEGP(t.current_balance)} ج.م\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `📋 *آخر الحركات المسجلة:*\n`;
 
-    const text = `🦅 *شركة النسر للأدوات واللوحات الكهربائية*
-━━━━━━━━━━━━━━━━━━━━
-🏦 *كشف حساب خزينة:* [ ${tr.name} ]
-🏷️ *النوع:* ${tr.type}${tr.assigned_user ? ` | 👤 المسئول: ${tr.assigned_user}` : ""}
-📅 *الفترة:* ${periodText}
-━━━━━━━━━━━━━━━━━━━━
-💵 *الرصيد الافتتاحي:* ${formatEGP(s.opening_balance)} ج.م
-🟢 *إجمالي الوارد (+):* ${formatEGP(s.period_in)} ج.م
-🔴 *إجمالي المنصرف (-):* ${formatEGP(s.period_out)} ج.م
-━━━━━━━━━━━━━━━━━━━━
-💰 *الرصيد الحالي:* ${formatEGP(tr.current_balance)} ج.م
-━━━━━━━━━━━━━━━━━━━━
-📋 *سجل الحركات (${recentItems.length} من أصل ${data.items.length}):*
-${itemsLines || "• لا توجد حركات مسجلة بالفترة"}
-━━━━━━━━━━━━━━━━━━━━
-⏰ *تاريخ التقرير:* ${new Date().toLocaleDateString("ar-EG")} ${new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`;
+    const recent = (data.items || []).slice(0, 10);
+    if (recent.length === 0) {
+      text += `• لا توجد حركات مسجلة بهذه الفترة\n`;
+    } else {
+      recent.forEach((item) => {
+        const sign = item.type === "in" ? "🟢 +" : "🔴 -";
+        const amt = formatEGP(item.type === "in" ? item.amountIn : item.amountOut);
+        const dStr = item.date ? item.date.slice(0, 10) : "";
+        text += `• ${dStr} | ${sign}${amt} ج | ${item.label}\n`;
+      });
+      if (data.items.length > 10) {
+        text += `... بالإضافة إلى (${data.items.length - 10}) حركة أخرى\n`;
+      }
+    }
 
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedSuccess(true);
-      setTimeout(() => setCopiedSuccess(false), 3000);
-    });
+    text += `━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `⏰ تم استخراج التقرير: ${new Date().toLocaleString("ar-EG")}\n`;
+
+    navigator.clipboard.writeText(text);
+    setCopiedSuccess(true);
+    setTimeout(() => setCopiedSuccess(false), 3000);
   }
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/treasury"
-            className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
-            title="الرجوع للخزائن"
-          >
-            <Lucide.ArrowRight className="w-5 h-5" />
-          </Link>
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 flex items-center justify-center text-2xl shadow-sm">
-            🏦
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl md:text-2xl font-black text-slate-800">
-                {data?.treasury?.name || "كشف حساب الخزينة"}
-              </h1>
-              {data?.treasury?.type && (
-                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200">
-                  {data.treasury.type}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
-              <span>كشف حساب محاسبي تفصيلي وتتبع كامل لحركات الوارد والمنصرف والرصيد اللحظي</span>
-              {data?.treasury?.assigned_user && (
-                <span className="text-blue-600 font-semibold">• 👤 المسئول: {data.treasury.assigned_user}</span>
-              )}
-            </p>
-          </div>
-        </div>
+    <div className="space-y-6 pb-16">
+      {/* Breadcrumb & Navigation */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <Link
+          href="/treasury"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+        >
+          <Lucide.ArrowRight className="w-4 h-4" />
+          <span>العودة لقائمة الخزائن</span>
+        </Link>
 
-        {/* Action Buttons */}
+        {/* Quick action buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => {
-              setTxTitle("");
-              setTxNotes("");
-              setTxAmount("");
               setShowTxModal("deposit");
+              setTxTitle("توريد نقدية مباشر / تغذية خزينة");
             }}
-            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-emerald-600/20"
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <Lucide.PlusCircle className="w-4 h-4" />
             <span>إيداع نقدية (+)</span>
@@ -236,95 +212,110 @@ ${itemsLines || "• لا توجد حركات مسجلة بالفترة"}
 
           <button
             onClick={() => {
-              setTxTitle("");
-              setTxNotes("");
-              setTxAmount("");
               setShowTxModal("withdrawal");
+              setTxTitle("سحب نقدي مباشر / عهدة");
             }}
-            className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-rose-600/20"
+            className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <Lucide.MinusCircle className="w-4 h-4" />
             <span>سحب نقدية (-)</span>
           </button>
 
           <button
-            onClick={copyWhatsAppReport}
-            className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-            title="نسخ تقرير منسق لمشاركته عبر الواتساب"
+            onClick={copyWhatsAppStatement}
+            className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            title="نسخ كشف حساب منسق وجاهز للإرسال على الواتساب"
           >
-            {copiedSuccess ? (
-              <>
-                <Lucide.Check className="w-4 h-4 text-emerald-600" />
-                <span className="text-emerald-700 font-black">تم النسخ بنجاح!</span>
-              </>
-            ) : (
-              <>
-                <Lucide.Share2 className="w-4 h-4 text-emerald-600" />
-                <span>نسخ للواتساب</span>
-              </>
-            )}
+            {copiedSuccess ? <Lucide.Check className="w-4 h-4" /> : <Lucide.Share2 className="w-4 h-4" />}
+            <span>{copiedSuccess ? "تم نسخ تقرير الواتساب! ✓" : "نسخ للواتساب 📲"}</span>
           </button>
 
           <a
-            href={`/print/statement/treasury/${id}${fromDate || toDate ? `?from_date=${fromDate}&to_date=${toDate}` : ""}`}
+            href={`/print/statement/treasury/${id}?from_date=${fromDate}&to_date=${toDate}&type=${typeFilter}`}
             target="_blank"
-            rel="noopener noreferrer"
-            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            rel="noreferrer"
+            className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <Lucide.Printer className="w-4 h-4" />
-            <span>طباعة / PDF</span>
+            <span>طباعة / تصدير PDF</span>
           </a>
         </div>
       </div>
 
-      {/* Financial Summary Cards */}
+      {/* Main Header Card */}
+      <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center text-3xl shadow-sm">
+            🏦
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-black text-slate-800">
+                كشف حساب: {data?.treasury.name || "جاري التحميل..."}
+              </h1>
+              {data?.treasury && (
+                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200">
+                  {data.treasury.type}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 font-semibold mt-1">
+              {data?.treasury.assigned_user ? `👤 المسئول: ${data.treasury.assigned_user} • ` : ""}
+              سجل تفصيلي دقيق لكافة الحركات النقدية والرصيد التراكمي اللحظي
+            </p>
+          </div>
+        </div>
+
+        {data && (
+          <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-left shrink-0">
+            <span className="text-[11px] font-bold text-emerald-800 block">الرصيد الحالي بالخزينة</span>
+            <span className="text-2xl font-black text-emerald-700 font-mono">
+              {formatEGP(data.treasury.current_balance)} <span className="text-xs font-normal">ج.م</span>
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Summary KPI Cards */}
       {data && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-500 mb-1">
-              <span className="text-xs font-bold">الرصيد الافتتاحي</span>
-              <span className="text-sm">💵</span>
-            </div>
-            <div className="text-lg sm:text-xl font-black text-slate-800 font-mono">
-              {formatEGP(data.summary.opening_balance)} <span className="text-xs text-slate-500 font-normal">ج</span>
+            <span className="text-[11px] font-bold text-slate-500 block mb-1">الرصيد الافتتاحي</span>
+            <div className="text-lg md:text-xl font-black text-slate-800 font-mono">
+              {formatEGP(data.summary.opening_balance)} <span className="text-xs font-normal text-slate-400">ج</span>
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/20 shadow-sm">
-            <div className="flex items-center justify-between text-emerald-700 mb-1">
-              <span className="text-xs font-bold">إجمالي الوارد (+)</span>
-              <Lucide.ArrowDownLeft className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="text-lg sm:text-xl font-black text-emerald-600 font-mono">
-              +{formatEGP(data.summary.period_in)} <span className="text-xs text-emerald-700 font-normal">ج</span>
+          <div className="bg-white p-4 rounded-2xl border border-emerald-100 bg-emerald-50/20 shadow-sm">
+            <span className="text-[11px] font-bold text-emerald-700 block mb-1">🟢 إجمالي الوارد بالفترة</span>
+            <div className="text-lg md:text-xl font-black text-emerald-600 font-mono">
+              +{formatEGP(data.summary.period_in)} <span className="text-xs font-normal text-slate-400">ج</span>
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/20 shadow-sm">
-            <div className="flex items-center justify-between text-rose-700 mb-1">
-              <span className="text-xs font-bold">إجمالي المنصرف (-)</span>
-              <Lucide.ArrowUpRight className="w-4 h-4 text-rose-600" />
-            </div>
-            <div className="text-lg sm:text-xl font-black text-rose-600 font-mono">
-              -{formatEGP(data.summary.period_out)} <span className="text-xs text-rose-700 font-normal">ج</span>
+          <div className="bg-white p-4 rounded-2xl border border-rose-100 bg-rose-50/20 shadow-sm">
+            <span className="text-[11px] font-bold text-rose-700 block mb-1">🔴 إجمالي المنصرف بالفترة</span>
+            <div className="text-lg md:text-xl font-black text-rose-600 font-mono">
+              -{formatEGP(data.summary.period_out)} <span className="text-xs font-normal text-slate-400">ج</span>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-2xl text-white shadow-md">
-            <div className="flex items-center justify-between text-blue-100 mb-1">
-              <span className="text-xs font-bold">الرصيد الحالي اللحظي</span>
-              <Lucide.Wallet className="w-4 h-4 text-blue-200" />
-            </div>
-            <div className="text-xl sm:text-2xl font-black font-mono">
-              {formatEGP(data.treasury.current_balance)} <span className="text-xs text-blue-200 font-normal">ج</span>
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <span className="text-[11px] font-bold text-slate-500 block mb-1">⚖️ صافي حركة الفترة</span>
+            <div
+              className={`text-lg md:text-xl font-black font-mono ${
+                data.summary.period_net >= 0 ? "text-emerald-700" : "text-rose-700"
+              }`}
+            >
+              {data.summary.period_net >= 0 ? "+" : ""}
+              {formatEGP(data.summary.period_net)} <span className="text-xs font-normal text-slate-400">ج</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Filter and Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden space-y-4 p-4 sm:p-6">
-        {/* Filters Bar */}
+      {/* Filters Section */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-1 flex-wrap">
             {/* Search */}
@@ -332,43 +323,23 @@ ${itemsLines || "• لا توجد حركات مسجلة بالفترة"}
               <Lucide.Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="بحث بالبيان، الطرف، الملاحظات..."
+                placeholder="بحث في البيان، الطرف، الملاحظات..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pr-9 pl-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium"
               />
             </div>
 
-            {/* In / Out Tabs */}
-            <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setTypeFilter("all")}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  typeFilter === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                الكل
-              </button>
-              <button
-                type="button"
-                onClick={() => setTypeFilter("in")}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  typeFilter === "in" ? "bg-emerald-600 text-white shadow-sm" : "text-emerald-700 hover:text-emerald-800"
-                }`}
-              >
-                الوارد (+)
-              </button>
-              <button
-                type="button"
-                onClick={() => setTypeFilter("out")}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  typeFilter === "out" ? "bg-rose-600 text-white shadow-sm" : "text-rose-700 hover:text-rose-800"
-                }`}
-              >
-                المنصرف (-)
-              </button>
-            </div>
+            {/* Type Filter */}
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as any)}
+              className="py-2 px-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none"
+            >
+              <option value="all">جميع الحركات (الوارد والمنصرف)</option>
+              <option value="in">🟢 الوارد فقط (+)</option>
+              <option value="out">🔴 المنصرف فقط (-)</option>
+            </select>
 
             {/* Date Filters */}
             <div className="flex items-center gap-1.5 text-xs text-slate-600">
@@ -377,14 +348,14 @@ ${itemsLines || "• لا توجد حركات مسجلة بالفترة"}
                 type="date"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-semibold"
+                className="py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold"
               />
               <span className="text-slate-400 font-bold">إلى:</span>
               <input
                 type="date"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-semibold"
+                className="py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold"
               />
               {(fromDate || toDate || search || typeFilter !== "all") && (
                 <button
@@ -404,98 +375,106 @@ ${itemsLines || "• لا توجد حركات مسجلة بالفترة"}
           </div>
 
           <div className="text-xs text-slate-500 font-bold text-left shrink-0">
-            عدد الحركات: <span className="text-slate-800 font-mono">{data?.items?.length || 0}</span>
+            عدد الحركات المعروضة: <span className="text-slate-800 font-mono">{data?.items.length || 0}</span>
           </div>
         </div>
+      </div>
 
-        {/* Ledger Table */}
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+      {/* Statement Table */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
           <table className="w-full text-xs sm:text-sm text-right">
-            <thead className="bg-slate-50 text-slate-700 font-extrabold border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
               <tr>
-                <th className="p-3">التاريخ والوقت</th>
-                <th className="p-3">نوع الحركة</th>
-                <th className="p-3">البيان / الطرف</th>
-                <th className="p-3 text-emerald-700">الوارد (+)</th>
-                <th className="p-3 text-rose-700">المنصرف (-)</th>
-                <th className="p-3 font-mono">الرصيد بعد الحركة</th>
-                <th className="p-3">الملاحظات</th>
-                <th className="p-3">المسؤول</th>
+                <th className="p-3 whitespace-nowrap">التاريخ</th>
+                <th className="p-3 whitespace-nowrap">نوع الحركة / التصنيف</th>
+                <th className="p-3">البيان والتفاصيل</th>
+                <th className="p-3 whitespace-nowrap text-emerald-700">وارد (+)</th>
+                <th className="p-3 whitespace-nowrap text-rose-700">منصرف (-)</th>
+                <th className="p-3 whitespace-nowrap text-slate-900">الرصيد اللحظي</th>
+                <th className="p-3 whitespace-nowrap">المسئول</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400 font-bold">
-                    ⏳ جاري تحميل كشف حساب الخزينة...
+                  <td colSpan={7} className="p-12 text-center text-slate-400 font-bold">
+                    ⏳ جاري تحميل كشف الحساب...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-rose-600 font-bold">
+                  <td colSpan={7} className="p-8 text-center text-rose-600 font-bold">
                     ❌ {error}
                   </td>
                 </tr>
-              ) : !data || data.items.length === 0 ? (
+              ) : (data?.items || []).length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400 font-semibold">
-                    لا توجد حركات مسجلة لهذه الخزينة في الفترة المحددة
+                  <td colSpan={7} className="p-12 text-center text-slate-400 font-semibold">
+                    لا توجد حركات مسجلة بالخزينة مطابقة للفلاتر
                   </td>
                 </tr>
               ) : (
-                data.items.map((item) => (
-                  <tr key={item.id} className="hover:bg-blue-50/30 transition-colors">
-                    <td className="p-3 font-mono text-slate-600 whitespace-nowrap text-xs">
-                      {formatDate(item.date)}
-                    </td>
-                    <td className="p-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          item.amountIn > 0
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-rose-50 text-rose-700 border border-rose-200"
-                        }`}
-                      >
-                        {item.amountIn > 0 ? "🟢" : "🔴"} {item.category}
-                      </span>
-                    </td>
-                    <td className="p-3 font-bold text-slate-800">
-                      {item.label}
-                    </td>
-                    <td className="p-3 font-black text-emerald-600 font-mono whitespace-nowrap">
-                      {item.amountIn > 0 ? `+${formatEGP(item.amountIn)} ج` : "—"}
-                    </td>
-                    <td className="p-3 font-black text-rose-600 font-mono whitespace-nowrap">
-                      {item.amountOut > 0 ? `-${formatEGP(item.amountOut)} ج` : "—"}
-                    </td>
-                    <td className="p-3 font-black text-slate-900 font-mono whitespace-nowrap bg-slate-50/50">
-                      {formatEGP(item.balance)} ج
-                    </td>
-                    <td className="p-3 text-slate-500 text-xs max-w-xs truncate">
-                      {item.notes || "—"}
-                    </td>
-                    <td className="p-3 text-slate-600 text-xs whitespace-nowrap font-medium">
-                      {item.user || "—"}
-                    </td>
-                  </tr>
-                ))
+                data?.items.map((item) => {
+                  const isIn = item.type === "in";
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="p-3 font-mono text-slate-600 whitespace-nowrap">{formatDate(item.date)}</td>
+
+                      <td className="p-3 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${
+                            isIn
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-rose-50 text-rose-700 border-rose-200"
+                          }`}
+                        >
+                          <span>{isIn ? "🟢" : "🔴"}</span>
+                          <span>{item.category}</span>
+                        </span>
+                      </td>
+
+                      <td className="p-3">
+                        <div className="font-bold text-slate-800">{item.label}</div>
+                        {item.notes && item.notes !== item.label && (
+                          <div className="text-xs text-slate-500 font-normal mt-0.5">{item.notes}</div>
+                        )}
+                      </td>
+
+                      <td className="p-3 font-mono font-extrabold text-emerald-600 whitespace-nowrap">
+                        {item.amountIn > 0 ? `+${formatEGP(item.amountIn)} ج` : "—"}
+                      </td>
+
+                      <td className="p-3 font-mono font-extrabold text-rose-600 whitespace-nowrap">
+                        {item.amountOut > 0 ? `-${formatEGP(item.amountOut)} ج` : "—"}
+                      </td>
+
+                      <td className="p-3 font-mono font-black text-slate-900 whitespace-nowrap text-sm bg-slate-50/50">
+                        {formatEGP(item.balance)} ج
+                      </td>
+
+                      <td className="p-3 text-slate-600 text-xs whitespace-nowrap">{item.user || "—"}</td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
             {data && data.items.length > 0 && (
-              <tfoot className="bg-slate-50 font-black border-t-2 border-slate-200 text-slate-800">
+              <tfoot className="bg-slate-100 font-black border-t-2 border-slate-300 text-slate-800">
                 <tr>
                   <td colSpan={3} className="p-3 text-left">
-                    إجمالي الفترة المحددة:
+                    إجمالي حركات الفترة المفلترة:
                   </td>
-                  <td className="p-3 text-emerald-700 font-mono text-sm">
+                  <td className="p-3 font-mono text-emerald-700 whitespace-nowrap">
                     +{formatEGP(data.summary.period_in)} ج
                   </td>
-                  <td className="p-3 text-rose-700 font-mono text-sm">
+                  <td className="p-3 font-mono text-rose-700 whitespace-nowrap">
                     -{formatEGP(data.summary.period_out)} ج
                   </td>
-                  <td colSpan={3} className="p-3 text-slate-900 font-mono text-sm">
-                    الرصيد الفعلي: {formatEGP(data.treasury.current_balance)} ج
+                  <td className="p-3 font-mono text-slate-900 text-base whitespace-nowrap">
+                    {formatEGP(data.treasury.current_balance)} ج
                   </td>
+                  <td></td>
                 </tr>
               </tfoot>
             )}
@@ -503,99 +482,92 @@ ${itemsLines || "• لا توجد حركات مسجلة بالفترة"}
         </div>
       </div>
 
-      {/* Direct Transaction Modal (إيداع / سحب مباشر) */}
+      {/* Direct Transaction Modal inside Statement Page */}
       {showTxModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-fade-in">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <h3 className="font-black text-lg text-slate-900 flex items-center gap-2">
-                {showTxModal === "deposit" ? (
-                  <>
-                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                      <Lucide.PlusCircle className="w-5 h-5" />
-                    </div>
-                    <span>إيداع نقدي مباشر للخزينة (+)</span>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
-                      <Lucide.MinusCircle className="w-5 h-5" />
-                    </div>
-                    <span>سحب نقدي مباشر من الخزينة (-)</span>
-                  </>
-                )}
-              </h3>
-              <button
-                onClick={() => setShowTxModal(null)}
-                className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 cursor-pointer"
-              >
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-fade-in space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                    showTxModal === "deposit" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                  }`}
+                >
+                  {showTxModal === "deposit" ? (
+                    <Lucide.PlusCircle className="w-6 h-6" />
+                  ) : (
+                    <Lucide.MinusCircle className="w-6 h-6" />
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-800">
+                    {showTxModal === "deposit" ? "إيداع نقدي مباشر (+)" : "سحب نقدي مباشر (-)"}
+                  </h2>
+                  <p className="text-[11px] text-slate-500 font-semibold">في خزينة: {data?.treasury.name}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowTxModal(null)} className="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
                 <Lucide.X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleDirectTransaction} className="mt-4 space-y-4">
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs font-semibold text-slate-700 flex justify-between items-center">
-                <span>الخزينة المستهدفة:</span>
-                <span className="font-bold text-slate-900">{data?.treasury?.name}</span>
+            <form onSubmit={handleSaveDirectTx} className="space-y-3.5 text-xs font-bold text-slate-700">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block mb-1">المبلغ (ج.م) *</label>
+                  <input
+                    required
+                    type="number"
+                    step="any"
+                    min="0.01"
+                    placeholder="0.00"
+                    value={txAmount}
+                    onChange={(e) => setTxAmount(e.target.value)}
+                    className={`w-full h-11 px-3 border border-slate-200 rounded-xl text-base font-black font-mono focus:ring-2 outline-none ${
+                      showTxModal === "deposit"
+                        ? "text-emerald-600 focus:ring-emerald-600"
+                        : "text-rose-600 focus:ring-rose-600"
+                    }`}
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1">التاريخ *</label>
+                  <input
+                    required
+                    type="date"
+                    value={txDate}
+                    onChange={(e) => setTxDate(e.target.value)}
+                    className="w-full h-11 px-3 border border-slate-200 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-blue-600 outline-none"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">المبلغ (ج.م) *</label>
+                <label className="block mb-1">البيان الأساسي *</label>
                 <input
-                  type="number"
-                  step="any"
                   required
-                  placeholder="0.00"
-                  value={txAmount}
-                  onChange={(e) => setTxAmount(e.target.value)}
-                  className={`w-full h-11 px-3.5 border rounded-xl text-lg font-black font-mono outline-none ${
-                    showTxModal === "deposit"
-                      ? "text-emerald-700 border-emerald-200 focus:ring-2 focus:ring-emerald-500"
-                      : "text-rose-700 border-rose-200 focus:ring-2 focus:ring-rose-500"
-                  }`}
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">البيان / سبب الحركة *</label>
-                <input
                   type="text"
-                  required
-                  placeholder={
-                    showTxModal === "deposit"
-                      ? "مثال: توريد نقدية من الإدارة، سحب من البنك، تغذية عهدة..."
-                      : "مثال: إيداع في البنك، عهدة نقدية، سحب نقدي حر..."
-                  }
                   value={txTitle}
                   onChange={(e) => setTxTitle(e.target.value)}
-                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder={
+                    showTxModal === "deposit" ? "مثال: توريد نقدية من الإدارة..." : "مثال: عهدة مؤقتة، إيداع بنكي..."
+                  }
+                  className="w-full h-11 px-3 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-600 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">التاريخ *</label>
-                <input
-                  type="date"
-                  required
-                  value={txDate}
-                  onChange={(e) => setTxDate(e.target.value)}
-                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm font-mono font-bold focus:ring-2 focus:ring-blue-600 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">ملاحظات إضافية (اختياري)</label>
-                <input
-                  type="text"
-                  placeholder="أي تفاصيل أخرى..."
+                <label className="block mb-1">ملاحظات إضافية (اختياري)</label>
+                <textarea
                   value={txNotes}
                   onChange={(e) => setTxNotes(e.target.value)}
-                  className="w-full h-11 px-3.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="أي تفاصيل أخرى..."
+                  rows={2}
+                  className="w-full p-2.5 border border-slate-200 rounded-xl text-xs font-normal focus:ring-2 focus:ring-blue-600 outline-none"
                 />
               </div>
 
-              <div className="pt-2 flex items-center gap-3">
+              <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
                   disabled={txSubmitting}
@@ -605,12 +577,12 @@ ${itemsLines || "• لا توجد حركات مسجلة بالفترة"}
                       : "bg-rose-600 hover:bg-rose-700 shadow-rose-600/20"
                   }`}
                 >
-                  {txSubmitting ? "جاري الحفظ..." : showTxModal === "deposit" ? "تأكيد الإيداع (+)" : "تأكيد السحب (-)"}
+                  {txSubmitting ? "جاري التسجيل..." : showTxModal === "deposit" ? "تأكيد الإيداع (+)" : "تأكيد الصرف (-)"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowTxModal(null)}
-                  className="px-5 h-11 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors cursor-pointer"
+                  className="h-11 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition-colors cursor-pointer"
                 >
                   إلغاء
                 </button>

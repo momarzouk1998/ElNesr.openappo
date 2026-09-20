@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/auth-server";
 
-// GET /api/treasury/[id]/statement — جلب كشف حساب الخزينة الشامل وتتبع الحركات والرصيد اللحظي
+// GET /api/treasury/[id]/statement — كشف حساب تفصيلي للخزينة مع كافة الحركات والرصيد التراكمي
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const profile = await getCurrentUser();
   if (!profile) {
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       assignedUserName = u?.full_name || null;
     }
 
-    // جلب كافة حركات الخزينة من كافة الجداول
+    // جلب كافة حركات الخزينة من جميع الجداول المرتبطة
     const [
       custPayments,
       custAdjustments,
@@ -141,32 +141,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const allEvents: StatementEvent[] = [];
 
-    // 1. تحصيلات عملاء
+    // 1. تحصيلات عملاء (+)
     for (const cp of custPayments) {
       allEvents.push({
-        id: `cp-${cp.id}`,
+        id: "cp-" + cp.id,
         date: new Date(cp.payment_date),
         type: "in",
         category: "تحصيل عميل",
-        label: `تحصيل من عميل: ${cp.customer?.name || "عميل نقدي"}`,
+        label: "تحصيل من عميل: " + (cp.customer?.name || "عميل نقدي"),
         party: cp.customer?.name,
         amountIn: Number(cp.amount || 0),
         amountOut: 0,
-        notes: cp.notes || `طريقة الدفع: ${cp.payment_method || "نقدي"}`,
+        notes: cp.notes || ("طريقة الدفع: " + (cp.payment_method || "نقدي")),
         user: cp.creator?.full_name,
         refId: cp.id,
       });
     }
 
-    // 2. تسويات عملاء
+    // 2. تسويات وسلف عملاء
     for (const ca of custAdjustments) {
-      const isDebit = ca.type === "debit";
+      const isDebit = ca.type === "debit"; // سلفة للعميل (خروج من الخزينة)
       allEvents.push({
-        id: `ca-${ca.id}`,
+        id: "ca-" + ca.id,
         date: new Date(ca.adjustment_date),
         type: isDebit ? "out" : "in",
-        category: isDebit ? "سلفة عميل" : "تسوية عميل واردة",
-        label: `${isDebit ? "صرف سلفة لعميل" : "تسوية نقدية من عميل"}: ${ca.customer?.name || ""}`,
+        category: isDebit ? "سلفة عميل" : "تسوية إضافة عميل",
+        label: (isDebit ? "صرف سلفة لعميل" : "توريد تسوية من عميل") + ": " + (ca.customer?.name || ""),
         party: ca.customer?.name,
         amountIn: !isDebit ? Number(ca.amount || 0) : 0,
         amountOut: isDebit ? Number(ca.amount || 0) : 0,
@@ -175,32 +175,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // 3. مدفوعات موردين
+    // 3. مدفوعات موردين (-)
     for (const sp of suppPayments) {
       allEvents.push({
-        id: `sp-${sp.id}`,
+        id: "sp-" + sp.id,
         date: new Date(sp.payment_date),
         type: "out",
         category: "سداد مورد",
-        label: `سداد لمورد: ${sp.supplier?.name || ""}`,
+        label: "سداد للمورد: " + (sp.supplier?.name || ""),
         party: sp.supplier?.name,
         amountIn: 0,
         amountOut: Number(sp.amount || 0),
-        notes: sp.notes || `طريقة السداد: ${sp.payment_method || "نقدي"}`,
+        notes: sp.notes || ("طريقة السداد: " + (sp.payment_method || "نقدي")),
         user: sp.creator?.full_name,
         refId: sp.id,
       });
     }
 
-    // 4. تسويات موردين
+    // 4. تسويات وسلف موردين
     for (const sa of suppAdjustments) {
-      const isDebit = sa.type === "debit";
+      const isDebit = sa.type === "debit"; // سلفة مستردة من مورد (دخول للخزينة)
       allEvents.push({
-        id: `sa-${sa.id}`,
+        id: "sa-" + sa.id,
         date: new Date(sa.adjustment_date),
         type: isDebit ? "in" : "out",
-        category: isDebit ? "استرداد من مورد" : "تسوية مورد منصرفة",
-        label: `${isDebit ? "نقدية واردة من مورد" : "تسوية منصرفة لمورد"}: ${sa.supplier?.name || ""}`,
+        category: isDebit ? "استرداد من مورد" : "تسوية سداد لمورد",
+        label: (isDebit ? "استرداد سلفة من مورد" : "تسوية للمورد بالخصم") + ": " + (sa.supplier?.name || ""),
         party: sa.supplier?.name,
         amountIn: isDebit ? Number(sa.amount || 0) : 0,
         amountOut: !isDebit ? Number(sa.amount || 0) : 0,
@@ -209,31 +209,31 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // 5. مصروفات
+    // 5. المصروفات (-)
     for (const exp of expensesList) {
       allEvents.push({
-        id: `exp-${exp.id}`,
+        id: "exp-" + exp.id,
         date: new Date(exp.expense_date),
         type: "out",
-        category: `مصروف: ${exp.category}`,
-        label: `مصروفات - ${exp.category} (${exp.description})`,
+        category: "مصروف: " + exp.category,
+        label: "مصروفات - " + exp.category + " (" + exp.description + ")",
         party: exp.category,
         amountIn: 0,
         amountOut: Number(exp.amount || 0),
-        notes: exp.notes ? `${exp.description} - ${exp.notes}` : exp.description,
+        notes: exp.notes ? (exp.description + " - " + exp.notes) : exp.description,
         user: exp.creator?.full_name,
         refId: exp.id,
       });
     }
 
-    // 6. سلف موظفين
+    // 6. سلف الموظفين (-)
     for (const ea of empAdvances) {
       allEvents.push({
-        id: `ea-${ea.id}`,
+        id: "ea-" + ea.id,
         date: new Date(ea.advance_date),
         type: "out",
         category: "سلفة موظف",
-        label: `سلفة موظف: ${ea.employee?.name || ""}`,
+        label: "سلفة موظف: " + (ea.employee?.name || ""),
         party: ea.employee?.name,
         amountIn: 0,
         amountOut: Number(ea.amount || 0),
@@ -242,14 +242,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // 7. رواتب موظفين
+    // 7. رواتب الموظفين (-)
     for (const sal of salaryPayments) {
       allEvents.push({
-        id: `sal-${sal.id}`,
+        id: "sal-" + sal.id,
         date: new Date(sal.payment_date),
         type: "out",
-        category: "صرف راتب",
-        label: `صرف راتب شهر ${sal.month}/${sal.year} للموظف: ${sal.employee?.name || ""}`,
+        category: "راتب موظف",
+        label: "قبض راتب شهر " + sal.month + "/" + sal.year + " للموظف: " + (sal.employee?.name || ""),
         party: sal.employee?.name,
         amountIn: 0,
         amountOut: Number(sal.net_paid || 0),
@@ -258,14 +258,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // 8. مسحوبات شركاء
+    // 8. مسحوبات الشركاء (-)
     for (const pw of partnerWithdrawals) {
       allEvents.push({
-        id: `pw-${pw.id}`,
+        id: "pw-" + pw.id,
         date: new Date(pw.withdrawal_date),
         type: "out",
         category: "مسحوبات شريك",
-        label: `مسحوبات شريك: ${pw.partner?.name || ""}`,
+        label: "مسحوبات الشريك: " + (pw.partner?.name || ""),
         party: pw.partner?.name,
         amountIn: 0,
         amountOut: Number(pw.amount || 0),
@@ -274,21 +274,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // 9. حركات نقدية مباشرة وتحويلات
+    // 9. حركات الخزينة المباشرة والتحويلات (+ / -)
     for (const tx of directTransactions) {
       const isIn = tx.direction === "in" || tx.direction === "transfer_in";
-      let category = "حركة نقدية";
-      if (tx.reference_type === "direct_deposit" || tx.reference_type === "deposit") category = "إيداع نقدي مباشر";
-      else if (tx.reference_type === "direct_withdrawal" || tx.reference_type === "withdrawal") category = "سحب نقدي مباشر";
-      else if (tx.reference_type === "treasury_transfer") category = isIn ? "تحويل وارد من خزينة" : "تحويل صادر لخزينة";
+      let cat = "حركة نقدية";
+      if (tx.reference_type === "direct_deposit") cat = "إيداع نقدي مباشر";
+      else if (tx.reference_type === "direct_withdrawal") cat = "سحب نقدي مباشر";
+      else if (tx.direction === "transfer_in") cat = "تحويل وارد";
+      else if (tx.direction === "transfer_out") cat = "تحويل صادر";
 
       allEvents.push({
-        id: `tx-${tx.id}`,
+        id: "tx-" + tx.id,
         date: new Date(tx.transaction_date),
         type: isIn ? "in" : "out",
-        category,
-        label: tx.notes || (isIn ? "إيداع نقدي" : "سحب نقدي"),
-        party: category,
+        category: cat,
+        label: tx.notes || (isIn ? "إيداع نقدية مباشر" : "سحب نقدية مباشر"),
+        party: tx.reference_type || cat,
         amountIn: isIn ? Number(tx.amount || 0) : 0,
         amountOut: !isIn ? Number(tx.amount || 0) : 0,
         notes: tx.notes,
@@ -297,81 +298,65 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
+    // ترتيب الحركات زمنياً لحساب الرصيد التراكمي
     allEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-    let running = Number(treasury.opening_balance || 0);
-    const ledgerEntries: any[] = [];
+    let runningBalance = Number(treasury.opening_balance || 0);
+    let totalInAll = 0;
+    let totalOutAll = 0;
 
-    if (Number(treasury.opening_balance || 0) !== 0) {
-      const op = Number(treasury.opening_balance);
-      ledgerEntries.push({
-        id: "opening-balance",
-        date: treasury.created_at ? new Date(treasury.created_at).toISOString() : new Date("2026-01-01").toISOString(),
-        type: op >= 0 ? "in" : "out",
-        category: "رصيد افتتاحي",
-        label: "الرصيد الافتتاحي للخزينة",
-        party: "—",
-        amountIn: op > 0 ? op : 0,
-        amountOut: op < 0 ? Math.abs(op) : 0,
-        balance: running,
-        notes: treasury.notes || "بداية تشغيل الخزينة",
-        user: "النظام",
-      });
-    }
+    const fullStatement: (StatementEvent & { balance: number })[] = [];
 
     for (const ev of allEvents) {
-      running = running + ev.amountIn - ev.amountOut;
-      ledgerEntries.push({
-        id: ev.id,
-        date: ev.date.toISOString(),
-        type: ev.type,
-        category: ev.category,
-        label: ev.label,
-        party: ev.party || "—",
-        amountIn: ev.amountIn,
-        amountOut: ev.amountOut,
-        balance: running,
-        notes: ev.notes || "—",
-        user: ev.user || "—",
-        refId: ev.refId,
+      runningBalance = runningBalance + ev.amountIn - ev.amountOut;
+      totalInAll += ev.amountIn;
+      totalOutAll += ev.amountOut;
+
+      fullStatement.push({
+        ...ev,
+        balance: runningBalance,
       });
     }
 
-    let filtered = [...ledgerEntries];
+    // تطبيق فلاتر البحث والتواريخ ونوع الحركة
+    let filteredItems = [...fullStatement];
 
     if (fromDate) {
-      const from = new Date(fromDate).getTime();
-      filtered = filtered.filter((e) => new Date(e.date).getTime() >= from);
+      const from = new Date(fromDate);
+      from.setHours(0, 0, 0, 0);
+      filteredItems = filteredItems.filter((i) => i.date >= from);
     }
 
     if (toDate) {
-      const to = new Date(`${toDate}T23:59:59.999Z`).getTime();
-      filtered = filtered.filter((e) => new Date(e.date).getTime() <= to);
+      const to = new Date(toDate);
+      to.setHours(23, 59, 59, 999);
+      filteredItems = filteredItems.filter((i) => i.date <= to);
     }
 
     if (typeFilter === "in") {
-      filtered = filtered.filter((e) => e.amountIn > 0);
+      filteredItems = filteredItems.filter((i) => i.type === "in");
     } else if (typeFilter === "out") {
-      filtered = filtered.filter((e) => e.amountOut > 0);
+      filteredItems = filteredItems.filter((i) => i.type === "out");
     }
 
     if (search) {
-      filtered = filtered.filter(
-        (e) =>
-          e.label.toLowerCase().includes(search) ||
-          e.category.toLowerCase().includes(search) ||
-          (e.party && e.party.toLowerCase().includes(search)) ||
-          (e.notes && e.notes.toLowerCase().includes(search)) ||
-          (e.user && e.user.toLowerCase().includes(search))
+      filteredItems = filteredItems.filter(
+        (i) =>
+          (i.label && i.label.toLowerCase().includes(search)) ||
+          (i.category && i.category.toLowerCase().includes(search)) ||
+          (i.party && i.party.toLowerCase().includes(search)) ||
+          (i.notes && i.notes.toLowerCase().includes(search)) ||
+          (i.user && i.user.toLowerCase().includes(search))
       );
     }
 
-    const periodIn = filtered.reduce((sum, e) => sum + Number(e.amountIn || 0), 0);
-    const periodOut = filtered.reduce((sum, e) => sum + Number(e.amountOut || 0), 0);
+    // إجماليات الفترة المفلترة
+    const periodIn = filteredItems.reduce((s, i) => s + i.amountIn, 0);
+    const periodOut = filteredItems.reduce((s, i) => s + i.amountOut, 0);
     const periodNet = periodIn - periodOut;
 
-    const totalAllIn = ledgerEntries.reduce((sum, e) => sum + Number(e.amountIn || 0), 0);
-    const totalAllOut = ledgerEntries.reduce((sum, e) => sum + Number(e.amountOut || 0), 0);
+    // عكس الترتيب لعرض الأحدث أولاً في شاشة العرض
+    const displayItems = [...filteredItems].reverse();
 
     return NextResponse.json({
       ok: true,
@@ -382,28 +367,33 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           type: treasury.type,
           opening_balance: Number(treasury.opening_balance || 0),
           current_balance: Number(treasury.current_balance || 0),
-          calculated_balance: running,
+          calculated_balance: runningBalance,
           assigned_user: assignedUserName,
           notes: treasury.notes,
         },
         summary: {
           opening_balance: Number(treasury.opening_balance || 0),
-          total_in: totalAllIn,
-          total_out: totalAllOut,
+          total_in: totalInAll,
+          total_out: totalOutAll,
           current_balance: Number(treasury.current_balance || 0),
-          calculated_balance: running,
+          calculated_balance: runningBalance,
           period_in: periodIn,
           period_out: periodOut,
           period_net: periodNet,
-          movement_count: filtered.length,
-          total_count: ledgerEntries.length,
+          movement_count: filteredItems.length,
+          total_count: fullStatement.length,
         },
-        items: [...filtered].reverse(),
-        chronological_items: filtered,
+        items: displayItems.map((i) => ({
+          ...i,
+          date: i.date.toISOString(),
+        })),
       },
     });
   } catch (e: any) {
-    console.error("Error generating treasury statement:", e);
-    return NextResponse.json({ ok: false, error: { code: "DB_ERROR", message: e?.message || "حدث خطأ أثناء جلب كشف الحساب" } }, { status: 500 });
+    console.error("Error loading treasury statement:", e);
+    return NextResponse.json(
+      { ok: false, error: { code: "DB_ERROR", message: e?.message || "حدث خطأ أثناء تحميل كشف الحساب" } },
+      { status: 500 }
+    );
   }
 }
