@@ -160,21 +160,23 @@ export default function TreasuryStatementPage() {
     text += `━━━━━━━━━━━━━━━━━━━━\n`;
     text += `💰 *الرصيد الحالي بالخزينة:* ${formatEGP(t.current_balance)} ج.م\n`;
     text += `━━━━━━━━━━━━━━━━━━━━\n`;
-    text += `📋 *آخر الحركات المسجلة:*\n`;
+    const items = data.items || [];
+    text += `📋 *سجل حركات الخزينة بالتفصيل (${items.length} حركة):*\n`;
 
-    const recent = (data.items || []).slice(0, 10);
-    if (recent.length === 0) {
+    if (items.length === 0) {
       text += `• لا توجد حركات مسجلة بهذه الفترة\n`;
     } else {
-      recent.forEach((item) => {
-        const sign = item.type === "in" ? "🟢 +" : "🔴 -";
+      items.forEach((item, idx) => {
+        const sign = item.type === "in" ? "🟢 وارد: +" : "🔴 صادر: -";
         const amt = formatEGP(item.type === "in" ? item.amountIn : item.amountOut);
         const dStr = item.date ? item.date.slice(0, 10) : "";
-        text += `• ${dStr} | ${sign}${amt} ج | ${item.label}\n`;
+        const balStr = `(رصيد: ${formatEGP(item.balance)} ج)`;
+        text += `${idx + 1}. 📅 ${dStr} | ${sign}${amt} ج.م | ${balStr}\n   📝 البيان: ${item.label}\n`;
+        if (item.notes && item.notes !== item.label) {
+          text += `   💬 ملاحظات: ${item.notes}\n`;
+        }
+        text += `──────────────────\n`;
       });
-      if (data.items.length > 10) {
-        text += `... بالإضافة إلى (${data.items.length - 10}) حركة أخرى\n`;
-      }
     }
 
     text += `━━━━━━━━━━━━━━━━━━━━\n`;

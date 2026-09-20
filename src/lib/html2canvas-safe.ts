@@ -217,6 +217,8 @@ export async function captureElementToCanvas(
         try {
           const allCloned = [clonedElement, ...Array.from(clonedElement.querySelectorAll("*"))] as HTMLElement[];
           allCloned.forEach((el) => {
+            // Force normal letter-spacing to prevent Arabic cursive text from breaking into disjointed letters in html2canvas
+            el.style.setProperty("letter-spacing", "normal", "important");
             if (el.style) {
               for (let i = 0; i < el.style.length; i++) {
                 const prop = el.style[i];

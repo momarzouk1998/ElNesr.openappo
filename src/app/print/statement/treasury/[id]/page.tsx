@@ -300,7 +300,7 @@ export default async function TreasuryStatementPrintPage({
               <img src={LOGO_BASE64} alt="شركة النسر" className="w-16 h-16 object-contain" />
             )}
             <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-wide">
+              <h1 className="text-2xl font-black text-slate-900">
                 شركة النسر للأدوات واللوحات الكهربائية
               </h1>
               <p className="text-xs text-slate-600 font-bold mt-0.5">

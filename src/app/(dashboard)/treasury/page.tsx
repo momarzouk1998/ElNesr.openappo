@@ -83,50 +83,18 @@ export default function TreasuryPage() {
 
         <div className="flex gap-2 flex-wrap items-center">
           <button
-            onClick={() => setDirectTx({ type: "deposit" })}
-            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-600/20 cursor-pointer"
-          >
-            <Lucide.PlusCircle className="w-4 h-4" />
-            <span>إيداع نقدية (+)</span>
-          </button>
-
-          <button
-            onClick={() => setDirectTx({ type: "withdrawal" })}
-            className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all shadow-sm shadow-rose-600/20 cursor-pointer"
-          >
-            <Lucide.MinusCircle className="w-4 h-4" />
-            <span>سحب نقدية (-)</span>
-          </button>
-
-          <Link
-            href="/treasury/customer-payments"
-            className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-emerald-800 border border-emerald-200 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
-          >
-            <span>💰</span>
-            <span>تحصيلات وسلف العملاء</span>
-          </Link>
-
-          <Link
-            href="/treasury/supplier-payments"
-            className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
-          >
-            <span>🏭</span>
-            <span>مدفوعات الموردين</span>
-          </Link>
-
-          <button
             onClick={recalculateAll}
             disabled={recalculating}
-            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1 transition-all cursor-pointer border border-slate-200 disabled:opacity-50"
+            className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200 disabled:opacity-50"
             title="إعادة تصفير وحساب الأرصدة من المعاملات المسجلة"
           >
             <Lucide.RotateCcw className={`w-4 h-4 ${recalculating ? "animate-spin text-amber-600" : ""}`} />
-            <span>{recalculating ? "جاري إعادة الحساب..." : "تصفير/إعادة حساب"}</span>
+            <span>{recalculating ? "جاري إعادة الحساب..." : "تصفير/إعادة حساب الأرصدة"}</span>
           </button>
 
           <button
             onClick={() => setShowAdd(true)}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-black text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer"
           >
             <Lucide.Plus className="w-4 h-4" />
             <span>خزينة جديدة</span>
