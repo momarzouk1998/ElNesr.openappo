@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import SearchableSelect, { type SearchOption } from "@/components/SearchableSelect";
 import { getCurrentUserClient } from "@/hooks/useCurrentUser";
+import { PurchaseDetailsModal } from "@/components/PurchaseDetailsModal";
 
 // ─── Types ────────────────────────────────────────────────
 interface PurchaseInvoice {
@@ -326,124 +327,6 @@ function SupplierReturnDetailsModal({ returnId, isAdmin, onClose, onChanged }: {
 }
 
 // ═══════════════════════════════════════════════════════════
-// MODAL — تفاصيل فاتورة الشراء
-// ═══════════════════════════════════════════════════════════
-function PurchaseDetailsModal({ invoiceId, isAdmin, onClose, onChanged }: {
-  invoiceId: string; isAdmin: boolean; onClose: () => void; onChanged: () => void;
-}) {
-  const { data: inv, loading, refetch } = useApi<any>(`/api/purchases/invoices/${invoiceId}`);
-  const { mutate } = useApiMutation();
-  const [editing, setEditing] = useState(false);
-  const [status, setStatus] = useState("");
-  const [notes, setNotes]   = useState("");
-
-  const isCompleted = inv?.status === "مكتملة";
-  const isCancelled = inv?.status === "ملغاة";
-
-  if (inv && status === "") { setStatus(inv.status); setNotes(inv.notes || ""); }
-
-  if (loading) return <ModalShell onClose={onClose}><p className="p-8">⏳ جاري التحميل...</p></ModalShell>;
-  if (!inv)    return <ModalShell onClose={onClose}><p className="p-8">❌ لم يتم العثور على الفاتورة</p></ModalShell>;
-
-  async function saveChanges() {
-    const { error } = await mutate("PATCH", `/api/purchases/invoices/${invoiceId}`, { status, notes });
-    if (error) { alert("❌ " + error); return; }
-    alert("✅ تم حفظ التعديلات"); setEditing(false); refetch();
-  }
-  async function cancelInvoice() {
-    if (!confirm("هل تريد إلغاء هذه الفاتورة؟")) return;
-    const { error } = await mutate("DELETE", `/api/purchases/invoices/${invoiceId}`);
-    if (error) { alert("❌ " + error); return; }
-    alert("✅ تم إلغاء الفاتورة"); onClose(); onChanged();
-  }
-  async function deleteInvoice() {
-    if (!confirm("⚠️ حذف نهائي — لا يمكن التراجع عنه. هل أنت متأكد؟")) return;
-    if (!confirm("⚠️ تأكيد أخير؟")) return;
-    const { error } = await mutate("DELETE", `/api/purchases/invoices/${invoiceId}?permanent=true`);
-    if (error) { alert("❌ " + error); return; }
-    alert("✅ تم الحذف النهائي"); onClose(); onChanged();
-  }
-
-  return (
-    <ModalShell onClose={onClose} wide>
-      <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
-        <div>
-          <h2 className="text-lg font-bold">📥 فاتورة مشتريات #{inv.purchase_number}
-            <span className={`badge ${statusColor(inv.status)} mr-2`}>{inv.status}</span>
-          </h2>
-          <p className="text-xs text-gray-500">{formatDate(inv.purchase_date)}</p>
-        </div>
-        <button onClick={onClose} className="text-2xl text-gray-400 hover:text-red-500">✕</button>
-      </div>
-      <div className="p-4 space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-          <Info label="المورد" value={inv.supplier?.name || "—"} />
-          <Info label="المنشئ" value={inv.creator?.full_name || "—"} />
-        </div>
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-2 text-right">الصنف</th><th className="p-2 text-center">الكمية</th>
-              <th className="p-2 text-left">سعر الشراء</th><th className="p-2 text-left">الإجمالي</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inv.items.map((it: any) => (
-              <tr key={it.id} className="border-t">
-                <td className="p-2">{it.product_name}</td>
-                <td className="p-2 text-center font-mono">{Number(it.quantity)}</td>
-                <td className="p-2 text-left font-mono">{formatEGP(Number(it.unit_cost))}</td>
-                <td className="p-2 text-left font-mono font-bold">{formatEGP(Number(it.line_total))}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="flex justify-between text-lg font-extrabold border-t pt-2 text-elnesr-600">
-          <span>الإجمالي:</span><span className="font-mono">{formatEGP(Number(inv.total_amount))} ج</span>
-        </div>
-        {inv.notes && <div className="text-xs text-gray-600 border-t pt-2">📝 {inv.notes}</div>}
-
-        {editing && !isCompleted && !isCancelled && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-gray-600 block mb-1">الحالة</label>
-              <select className="input-field text-sm" value={status} onChange={e => setStatus(e.target.value)}>
-                <option value="قيد التنفيذ">قيد التنفيذ</option>
-                <option value="مكتملة">مكتملة</option>
-              </select>
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-xs text-gray-600 block mb-1">ملاحظات</label>
-              <textarea className="input-field text-sm" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-2 pt-3 border-t">
-          {editing ? (
-            <>
-              <button onClick={saveChanges} className="btn-primary text-sm">💾 حفظ</button>
-              <button onClick={() => setEditing(false)} className="btn-secondary text-sm">إلغاء</button>
-            </>
-          ) : (
-            <>
-              {!isCompleted && !isCancelled && <button onClick={() => setEditing(true)} className="btn-secondary text-sm">✏️ تعديل</button>}
-              {!isCancelled && (
-                <button onClick={cancelInvoice} className={`text-sm px-4 py-2 rounded-lg font-semibold border transition ${isAdmin ? "bg-red-600 text-white hover:bg-red-700 border-red-700" : "bg-red-50 text-red-700 hover:bg-red-100 border-red-200"}`}>
-                  {isAdmin ? "⚠️ إلغاء (مدير)" : "🗑️ إلغاء الفاتورة"}
-                </button>
-              )}
-              {isAdmin && (
-                <button onClick={deleteInvoice} className="text-sm px-4 py-2 rounded-lg bg-red-700 text-white hover:bg-red-800">🗑️💀 حذف نهائي</button>
-              )}
-            </>
-          )}
-          <button onClick={onClose} className="btn-secondary text-sm">إغلاق</button>
-        </div>
-      </div>
-    </ModalShell>
-  );
-}
 
 // ─── Shared helpers ───────────────────────────────────────
 function ModalShell({ onClose, wide, children }: { onClose: () => void; wide?: boolean; children: React.ReactNode }) {

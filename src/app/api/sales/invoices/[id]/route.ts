@@ -416,12 +416,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         finalPaidAmount = sumPaid > 0 ? sumPaid : finalPaidAmount;
       }
 
-      // 3) تحديث الحالة/النوع/الملاحظات/المدفوع والرصيد الثابت
+      // 3) تحديث الحالة/النوع/الملاحظات/المدفوع والرصيد الثابت والتاريخ
       const updated = await tx.sales_invoices.update({
         where: { id },
         data: {
           status: newStatus,
           invoice_type: body.invoice_type ?? existing.invoice_type,
+          invoice_date: body.invoice_date ? new Date(body.invoice_date) : existing.invoice_date,
           paid_amount: isCompletedNow && !isQuotation ? finalPaidAmount : 0,
           customer_prev_balance: snapshotPrevBalance !== undefined ? snapshotPrevBalance : existing.customer_prev_balance,
           customer_new_balance: snapshotNewBalance !== undefined ? snapshotNewBalance : existing.customer_new_balance,

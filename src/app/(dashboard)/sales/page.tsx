@@ -497,6 +497,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
   const [discount, setDiscount] = useState(0);
   const [status, setStatus] = useState("");
   const [invoiceType, setInvoiceType] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState("");
   const [notes, setNotes] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -510,6 +511,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
       setDiscount(Number(inv.discount || 0));
       setStatus(inv.status);
       setInvoiceType(inv.invoice_type);
+      setInvoiceDate(inv.invoice_date ? String(inv.invoice_date).split("T")[0] : "");
       setNotes(inv.notes || "");
     }
   }, [inv, editing]);
@@ -565,6 +567,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
       discount,
       status: invoiceType === "عرض سعر" ? "قيد التنفيذ" : status,
       invoice_type: invoiceType,
+      invoice_date: invoiceDate ? new Date(invoiceDate).toISOString() : undefined,
       notes,
     });
     if (error) { alert("❌ " + error); return; }
@@ -755,6 +758,15 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
                   <option value="عادية">عادية</option><option value="ضريبية">ضريبية</option><option value="عرض سعر">عرض سعر</option>
                 </select>
               </div>
+              <div>
+                <label className="text-xs text-gray-600 font-bold block mb-1">📅 تاريخ الفاتورة</label>
+                <input
+                  type="date"
+                  className="input-field text-sm font-semibold"
+                  value={invoiceDate}
+                  onChange={e => setInvoiceDate(e.target.value)}
+                />
+              </div>
               {invoiceType !== "عرض سعر" && (
                 <div>
                   <label className="text-xs text-gray-600 font-bold block mb-1">الحالة</label>
@@ -767,7 +779,7 @@ function InvoiceDetailsModal({ invoice, invoiceId, isAdmin, initialEditing = fal
                 <label className="text-xs text-gray-600 font-bold block mb-1">الخصم (ج.م)</label>
                 <input type="number" min={0} step={0.01} className="input-field text-sm" value={discount === 0 ? '' : discount} onChange={e => setDiscount(Math.max(0, parseFloat(e.target.value) || 0))} placeholder="0" />
               </div>
-              <div className="md:col-span-3">
+              <div className="md:col-span-4">
                 <label className="text-xs text-gray-600 font-bold block mb-1">ملاحظات</label>
                 <textarea className="input-field text-sm" rows={2} value={notes} onChange={e => setNotes(e.target.value)} />
               </div>

@@ -33,6 +33,7 @@ export default function POSPage() {
   const [customerId, setCustomerId] = useState("");
   const [primaryStoreId, setPrimaryStoreId] = useState("");
   const [invoiceType, setInvoiceType] = useState("عادية");
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split("T")[0]);
   const [status, setStatus] = useState("مكتملة");
   const [discount, setDiscount] = useState(0);
   const [paidAmount, setPaidAmount] = useState<number>(0);
@@ -263,6 +264,7 @@ export default function POSPage() {
     const subtotalCalc = validItemsForApi.reduce((s, i) => s + i.quantity * i.unit_price, 0);
 
     const { error, data } = await mutate<{ id: string; invoice_number: number }>('POST', '/api/sales/invoices', {
+      invoice_date: invoiceDate ? new Date(invoiceDate).toISOString() : new Date().toISOString(),
       customer_id: customerId || null,
       store_id: storeIdToSave,
       invoice_type: invoiceType,
@@ -281,6 +283,7 @@ export default function POSPage() {
     setCart([]);
     setDiscount(0);
     setPaidAmount(0);
+    setInvoiceDate(new Date().toISOString().split("T")[0]);
     setNotes("");
     // ✅ router.refresh() يمسح Next.js Router Cache عشان /sales يجيب بيانات جديدة
     router.refresh();
@@ -399,17 +402,29 @@ export default function POSPage() {
               </div>
             )}
           </div>
-          <div>
-            <label className="text-xs text-gray-600 block mb-1">النوع</label>
-            <select
-              className="input-field text-sm"
-              value={invoiceType}
-              onChange={(e) => setInvoiceType(e.target.value)}
-            >
-              <option value="عادية">عادية</option>
-              <option value="ضريبية">ضريبية</option>
-              <option value="عرض سعر">عرض سعر</option>
-            </select>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-gray-600 block mb-1">النوع</label>
+              <select
+                className="input-field text-sm"
+                value={invoiceType}
+                onChange={(e) => setInvoiceType(e.target.value)}
+              >
+                <option value="عادية">عادية</option>
+                <option value="ضريبية">ضريبية</option>
+                <option value="عرض سعر">عرض سعر</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-700 block mb-1">📅 تاريخ الفاتورة *</label>
+              <input
+                type="date"
+                required
+                value={invoiceDate}
+                onChange={(e) => setInvoiceDate(e.target.value)}
+                className="input-field text-sm font-semibold w-full"
+              />
+            </div>
           </div>
           {invoiceType !== 'عرض سعر' && (
             <div>
