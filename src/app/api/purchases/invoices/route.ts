@@ -57,10 +57,14 @@ export async function POST(request: NextRequest) {
       const status = purchaseData.status || 'مكتملة';
       const willBeCompleted = status === 'مكتملة';
 
+      const invoiceDateToUse = purchaseData.purchase_date
+        ? new Date(purchaseData.purchase_date)
+        : (purchaseData.invoice_date ? new Date(purchaseData.invoice_date) : new Date());
+
       const invoice = await tx.purchase_invoices.create({
         data: {
           purchase_number,
-          purchase_date: purchaseData.purchase_date ? new Date(purchaseData.purchase_date) : new Date(),
+          purchase_date: invoiceDateToUse,
           supplier_id: purchaseData.supplier_id || null,
           status,
           total_amount: purchaseData.total_amount || 0,
@@ -98,7 +102,7 @@ export async function POST(request: NextRequest) {
             where: { id: it.product_id },
             data: {
               last_purchase_price: it.unit_cost,
-              last_purchase_date: new Date(),
+              last_purchase_date: invoiceDateToUse,
             },
           });
         }

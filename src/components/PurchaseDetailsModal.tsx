@@ -18,6 +18,7 @@ export function PurchaseDetailsModal({
   const { mutate } = useApiMutation();
   const [editing, setEditing] = useState(false);
   const [status, setStatus] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState("");
   const [notes, setNotes] = useState("");
 
   const isCompleted = inv?.status === "مكتملة";
@@ -26,6 +27,7 @@ export function PurchaseDetailsModal({
   if (inv && status === "") {
     setStatus(inv.status);
     setNotes(inv.notes || "");
+    setPurchaseDate(inv.purchase_date ? String(inv.purchase_date).split("T")[0] : "");
   }
 
   if (loading) {
@@ -51,7 +53,11 @@ export function PurchaseDetailsModal({
   }
 
   async function saveChanges() {
-    const { error } = await mutate("PATCH", `/api/purchases/invoices/${invoiceId}`, { status, notes });
+    const { error } = await mutate("PATCH", `/api/purchases/invoices/${invoiceId}`, {
+      status,
+      notes,
+      purchase_date: purchaseDate ? new Date(purchaseDate).toISOString() : undefined,
+    });
     if (error) {
       alert("❌ " + error);
       return;
@@ -149,6 +155,15 @@ export function PurchaseDetailsModal({
 
         {editing && !isCompleted && !isCancelled && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div>
+              <label className="text-xs text-gray-600 font-bold block mb-1">📅 تاريخ الفاتورة</label>
+              <input
+                type="date"
+                className="input-field text-sm font-semibold"
+                value={purchaseDate}
+                onChange={(e) => setPurchaseDate(e.target.value)}
+              />
+            </div>
             <div>
               <label className="text-xs text-gray-600 font-bold block mb-1">الحالة</label>
               <select className="input-field text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>

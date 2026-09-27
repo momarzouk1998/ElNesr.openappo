@@ -17,6 +17,7 @@ export default function NewPurchasePage() {
   const [supplierId, setSupplierId] = useState("");
   const [primaryStoreId, setPrimaryStoreId] = useState("");
   const [status, setStatus] = useState("قيد التنفيذ");
+  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
   const [showNewProduct, setShowNewProduct] = useState(false);
   const { mutate, loading: saving } = useApiMutation();
@@ -94,6 +95,7 @@ export default function NewPurchasePage() {
     }
     const validTotal = validItems.reduce((s, i) => s + i.quantity * i.unit_cost, 0);
     const { error, data } = await mutate<{ id: string; purchase_number: number }>('POST', '/api/purchases/invoices', {
+      purchase_date: purchaseDate ? new Date(purchaseDate).toISOString() : new Date().toISOString(),
       supplier_id: supplierId || null,
       status,
       total_amount: validTotal,
@@ -194,12 +196,24 @@ export default function NewPurchasePage() {
               ))}
             </select>
           </div>
-          <div>
-            <label className="text-xs text-gray-600 block mb-1">الحالة</label>
-            <select className="input-field text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="قيد التنفيذ">قيد التنفيذ (مسودة - لا تخصم المخزون)</option>
-              <option value="مكتملة">مكتملة (نهائية - تضيف للمخزون)</option>
-            </select>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-gray-600 block mb-1">الحالة</label>
+              <select className="input-field text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="قيد التنفيذ">قيد التنفيذ (مسودة - لا تضيف للمخزون)</option>
+                <option value="مكتملة">مكتملة (نهائية - تضيف للمخزون)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-700 block mb-1">📅 تاريخ الفاتورة *</label>
+              <input
+                type="date"
+                required
+                value={purchaseDate}
+                onChange={(e) => setPurchaseDate(e.target.value)}
+                className="input-field text-sm font-semibold w-full"
+              />
+            </div>
           </div>
         </div>
 

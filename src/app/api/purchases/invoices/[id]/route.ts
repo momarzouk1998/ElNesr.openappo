@@ -136,11 +136,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         }
       }
 
-      // 3) تحديث الحالة/الملاحظات
+      // 3) تحديث الحالة/الملاحظات/التاريخ
       const updated = await tx.purchase_invoices.update({
         where: { id },
         data: {
           status: newStatus,
+          purchase_date: body.purchase_date
+            ? new Date(body.purchase_date)
+            : (body.invoice_date ? new Date(body.invoice_date) : undefined),
           notes: body.notes ?? existing.notes,
           updated_at: new Date(),
         },
