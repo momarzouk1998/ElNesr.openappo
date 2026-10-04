@@ -6,6 +6,8 @@ import Link from "next/link";
 import { formatEGP, formatDate } from "@/lib/format";
 import * as Lucide from "lucide-react";
 
+import TransferTreasuryModal from "@/components/TransferTreasuryModal";
+
 interface StatementItem {
   id: string;
   date: string;
@@ -69,6 +71,10 @@ export default function TreasuryStatementPage() {
   const [txNotes, setTxNotes] = useState<string>("");
   const [txSubmitting, setTxSubmitting] = useState<boolean>(false);
   const [copiedSuccess, setCopiedSuccess] = useState<boolean>(false);
+
+  // Transfer Modal
+  const [showTransferModal, setShowTransferModal] = useState<boolean>(false);
+  const [allTreasuries, setAllTreasuries] = useState<any[]>([]);
 
   const loadStatement = useCallback(async () => {
     if (!id) return;
@@ -201,6 +207,24 @@ export default function TreasuryStatementPage() {
 
         {/* Quick action buttons */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/treasury");
+                const json = await res.json();
+                if (json.ok && json.data?.items) {
+                  setAllTreasuries(json.data.items);
+                }
+              } catch {}
+              setShowTransferModal(true);
+            }}
+            className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            title="تحويل نقدية من أو إلى هذه الخزينة"
+          >
+            <Lucide.ArrowLeftRight className="w-4 h-4" />
+            <span>تحويل نقدية (من/إلى) 🔄</span>
+          </button>
+
           <button
             onClick={() => {
               setShowTxModal("deposit");
@@ -592,6 +616,19 @@ export default function TreasuryStatementPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Transfer Between Treasuries Modal */}
+      {showTransferModal && (
+        <TransferTreasuryModal
+          treasuries={allTreasuries}
+          initialFromId={id}
+          onClose={() => setShowTransferModal(false)}
+          onSuccess={() => {
+            setShowTransferModal(false);
+            loadStatement();
+          }}
+        />
       )}
     </div>
   );

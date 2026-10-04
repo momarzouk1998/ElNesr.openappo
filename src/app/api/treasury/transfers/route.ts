@@ -8,15 +8,16 @@ export async function GET(request: NextRequest) {
   if (!profile) return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED" } }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
-  const fromTreasury = searchParams.get("from_treasury_id") || "";
-  const toTreasury = searchParams.get("to_treasury_id") || "";
-  const status = searchParams.get("status") || "";
+  const treasuryId = searchParams.get("treasury_id") || "";
   const limit = parseInt(searchParams.get("limit") || "100");
   const offset = parseInt(searchParams.get("offset") || "0");
 
-  const where = {
+  const where: any = {
     reference_type: "treasury_transfer",
   };
+  if (treasuryId) {
+    where.treasury_id = treasuryId;
+  }
 
   const [items, total] = await Promise.all([
     prisma.treasury_transactions.findMany({
@@ -35,14 +36,14 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ ok: true, data: { items, total, limit, offset } });
 }
 
-// POST /api/treasury/transfers — تحويل بين خزائن
+// POST /api/treasury/transfers — تحويل نقدية بين خزائن
 export async function POST(request: NextRequest) {
   const profile = await getCurrentUser();
   if (!profile) return NextResponse.json({ ok: false, error: { code: "UNAUTHORIZED" } }, { status: 401 });
 
-  // فقط admin و manager يستطيعوا تحويل الأموال بين الخزائن
-  if (!['admin', 'manager'].includes(profile.role)) {
-    return NextResponse.json({ ok: false, error: { code: "FORBIDDEN", message: "غير مسموح بتحويل الأموال" } }, { status: 403 });
+  // admin, manager, accountant يستطيعون تحويل النقدية
+  if (!["admin", "manager", "accountant"].includes(profile.role)) {
+    return NextResponse.json({ ok: false, error: { code: "FORBIDDEN", message: "غير مصرح لك بتحويل النقدية بين الخزائن" } }, { status: 403 });
   }
 
   try {
@@ -51,48 +52,55 @@ export async function POST(request: NextRequest) {
 
     if (!from_treasury_id || !to_treasury_id || !amount) {
       return NextResponse.json(
-        { ok: false, error: { code: "VALIDATION_ERROR", message: "الخزينة المصدر والوجهة والمبلغ مطلوبة" } },
+        { ok: false, error: { code: "VALIDATION_ERROR", message: "الخزينة المصدر والخزينة الوجهة والمبلغ مطلوبة" } },
         { status: 400 }
       );
     }
-    
+
     if (from_treasury_id === to_treasury_id) {
       return NextResponse.json({ ok: false, error: { code: "VALIDATION_ERROR", message: "لا يمكن التحويل لنفس الخزينة" } }, { status: 400 });
     }
 
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt <= 0) {
-      return NextResponse.json({ ok: false, error: { code: "VALIDATION_ERROR", message: "المبلغ يجب أن يكون رقم موجب" } }, { status: 400 });
+      return NextResponse.json({ ok: false, error: { code: "VALIDATION_ERROR", message: "المبلغ يجب أن يكون رقماً موجباً أكبر من الصفر" } }, { status: 400 });
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      // 1. تحقق من الخزينة المصدر والوجهة
+      // 1. تحقق من وجود الخزائن
       const [fromTreasury, toTreasury] = await Promise.all([
         tx.treasuries.findUnique({ where: { id: from_treasury_id } }),
-        tx.treasuries.findUnique({ where: { id: to_treasury_id } })
+        tx.treasuries.findUnique({ where: { id: to_treasury_id } }),
       ]);
 
       if (!fromTreasury) throw new Error("الخزينة المصدر غير موجودة");
       if (!toTreasury) throw new Error("خزينة الوجهة غير موجودة");
-      // 1. السماح بالسالب: تمت إزالة شرط رصيد الخزينة المصدر
 
-      // 2. خصم من الخزينة المصدر
-      await tx.treasuries.update({
+      // 2. خصم المبلغ من الخزينة المصدر
+      const updatedFrom = await tx.treasuries.update({
         where: { id: from_treasury_id },
-        data: { current_balance: { decrement: amt } },
+        data: { current_balance: { decrement: amt }, updated_at: new Date() },
       });
 
-      // 3. إضافة لخزينة الوجهة
-      await tx.treasuries.update({
+      // 3. إضافة المبلغ لخزينة الوجهة
+      const updatedTo = await tx.treasuries.update({
         where: { id: to_treasury_id },
-        data: { current_balance: { increment: amt } },
+        data: { current_balance: { increment: amt }, updated_at: new Date() },
       });
 
       const transferDate = transfer_date ? new Date(transfer_date) : new Date();
-      const transferId = `transfer_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const transferUuid = crypto.randomUUID();
 
-      // 4. سجل حركة الخصم
-      const outTransaction = await tx.treasury_transactions.create({
+      const cleanNotes = notes ? String(notes).trim() : "";
+      const outNotes = cleanNotes
+        ? `تحويل نقدية إلى (${toTreasury.name}) - ${cleanNotes}`
+        : `تحويل نقدية إلى (${toTreasury.name})`;
+      const inNotes = cleanNotes
+        ? `تحويل نقدية من (${fromTreasury.name}) - ${cleanNotes}`
+        : `تحويل نقدية من (${fromTreasury.name})`;
+
+      // 4. تسجيل حركة الخصم (transfer_out)
+      await tx.treasury_transactions.create({
         data: {
           treasury_id: from_treasury_id,
           direction: "transfer_out",
@@ -100,15 +108,15 @@ export async function POST(request: NextRequest) {
           from_treasury_id,
           to_treasury_id,
           reference_type: "treasury_transfer",
-          reference_id: transferId,
+          reference_id: transferUuid,
           status: "accepted",
-          notes: notes || `تحويل إلى ${toTreasury.name}`,
+          notes: outNotes,
           by_user_id: profile.id,
           transaction_date: transferDate,
         },
       });
 
-      // 5. سجل حركة الإضافة
+      // 5. تسجيل حركة الإضافة (transfer_in)
       await tx.treasury_transactions.create({
         data: {
           treasury_id: to_treasury_id,
@@ -117,26 +125,28 @@ export async function POST(request: NextRequest) {
           from_treasury_id,
           to_treasury_id,
           reference_type: "treasury_transfer",
-          reference_id: transferId,
+          reference_id: transferUuid,
           status: "accepted",
-          notes: notes || `تحويل من ${fromTreasury.name}`,
+          notes: inNotes,
           by_user_id: profile.id,
           transaction_date: transferDate,
         },
       });
 
       return {
-        transfer_id: transferId,
+        transfer_id: transferUuid,
         from_treasury: fromTreasury.name,
         to_treasury: toTreasury.name,
         amount: amt,
-        message: `تم تحويل ${amt} ج من ${fromTreasury.name} إلى ${toTreasury.name}`,
+        from_new_balance: Number(updatedFrom.current_balance),
+        to_new_balance: Number(updatedTo.current_balance),
+        message: `تم تحويل مبلغ ${amt} ج من (${fromTreasury.name}) إلى (${toTreasury.name}) بنجاح`,
       };
     });
 
-    return NextResponse.json({ ok: true, data: result });
+    return NextResponse.json({ ok: true, data: result, message: result.message }, { status: 201 });
   } catch (e: any) {
-    const status = e?.message?.includes("غير كافي") ? 400 : 500;
-    return NextResponse.json({ ok: false, error: { code: "DB_ERROR", message: e?.message || "حدث خطأ" } }, { status });
+    console.error("Error in treasury transfer:", e);
+    return NextResponse.json({ ok: false, error: { code: "DB_ERROR", message: e?.message || "حدث خطأ أثناء تنفيذ التحويل" } }, { status: 500 });
   }
 }

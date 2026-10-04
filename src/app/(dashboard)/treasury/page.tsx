@@ -5,6 +5,8 @@ import { useApi, useApiMutation } from "@/hooks/useApi";
 import { formatEGP } from "@/lib/format";
 import * as Lucide from "lucide-react";
 
+import TransferTreasuryModal from "@/components/TransferTreasuryModal";
+
 interface Treasury {
   id: string;
   name: string;
@@ -24,6 +26,9 @@ export default function TreasuryPage() {
 
   // Direct Transaction Modal State
   const [directTx, setDirectTx] = useState<{ type: "deposit" | "withdrawal"; treasury?: Treasury } | null>(null);
+
+  // Transfer Between Treasuries Modal State
+  const [showTransfer, setShowTransfer] = useState<{ fromId?: string; toId?: string } | null>(null);
 
   const { data, loading, refetch } = useApi<{ items: Treasury[]; total: number }>("/api/treasury");
   const { mutate } = useApiMutation();
@@ -82,6 +87,15 @@ export default function TreasuryPage() {
         </div>
 
         <div className="flex gap-2 flex-wrap items-center">
+          <button
+            onClick={() => setShowTransfer({})}
+            className="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-md shadow-purple-600/20 cursor-pointer"
+            title="تحويل نقدية بين خزائن النظام"
+          >
+            <Lucide.ArrowLeftRight className="w-4 h-4" />
+            <span>تحويل بين الخزائن</span>
+          </button>
+
           <button
             onClick={recalculateAll}
             disabled={recalculating}
@@ -206,21 +220,30 @@ export default function TreasuryPage() {
                 </Link>
 
                 {/* Direct Action Buttons */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   <button
                     onClick={() => setDirectTx({ type: "deposit", treasury: t })}
-                    className="py-1.5 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center gap-1 border border-emerald-200 transition-colors cursor-pointer"
+                    className="py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] flex items-center justify-center gap-1 border border-emerald-200 transition-colors cursor-pointer"
                   >
-                    <Lucide.PlusCircle className="w-3.5 h-3.5" />
-                    <span>إيداع نقدية</span>
+                    <Lucide.PlusCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>إيداع</span>
                   </button>
 
                   <button
                     onClick={() => setDirectTx({ type: "withdrawal", treasury: t })}
-                    className="py-1.5 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center gap-1 border border-rose-200 transition-colors cursor-pointer"
+                    className="py-1.5 px-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] flex items-center justify-center gap-1 border border-rose-200 transition-colors cursor-pointer"
                   >
-                    <Lucide.MinusCircle className="w-3.5 h-3.5" />
-                    <span>سحب نقدية</span>
+                    <Lucide.MinusCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>سحب</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowTransfer({ fromId: t.id })}
+                    className="py-1.5 px-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-[11px] flex items-center justify-center gap-1 border border-purple-200 transition-colors cursor-pointer"
+                    title="تحويل نقدية من هذه الخزينة"
+                  >
+                    <Lucide.ArrowLeftRight className="w-3.5 h-3.5 shrink-0" />
+                    <span>تحويل</span>
                   </button>
                 </div>
 
@@ -277,6 +300,20 @@ export default function TreasuryPage() {
           onClose={() => setDirectTx(null)}
           onSuccess={() => {
             setDirectTx(null);
+            refetch();
+          }}
+        />
+      )}
+
+      {/* Transfer Between Treasuries Modal */}
+      {showTransfer && (
+        <TransferTreasuryModal
+          treasuries={data?.items || []}
+          initialFromId={showTransfer.fromId}
+          initialToId={showTransfer.toId}
+          onClose={() => setShowTransfer(null)}
+          onSuccess={() => {
+            setShowTransfer(null);
             refetch();
           }}
         />
