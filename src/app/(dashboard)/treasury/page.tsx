@@ -48,6 +48,29 @@ export default function TreasuryPage() {
     refetch();
   }
 
+  async function resetTreasury(t: Treasury) {
+    if (
+      !confirm(
+        `⚠️ هل أنت متأكد من تصفير خزينة "${t.name}" بالكامل؟\n\nسيتم جعل الرصيد الافتتاحي والحالي 0.00 ج.م ومسح سجل حركاتها نهائياً.`
+      )
+    )
+      return;
+    if (!confirm(`⚠️ تأكيد نهائي لتصفير خزينة "${t.name}"؟`)) return;
+
+    try {
+      const res = await fetch(`/api/treasury/${t.id}/reset`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        alert("❌ " + (json?.error?.message || "فشل تصفير الخزينة"));
+        return;
+      }
+      alert("✅ " + json.message);
+      refetch();
+    } catch {
+      alert("❌ حدث خطأ في النظام أثناء تصفير الخزينة");
+    }
+  }
+
   async function recalculateAll() {
     if (
       !confirm(
@@ -247,14 +270,22 @@ export default function TreasuryPage() {
                   </button>
                 </div>
 
-                {/* Edit & Delete */}
-                <div className="flex gap-2 pt-1">
+                {/* Edit, Reset & Delete */}
+                <div className="flex gap-1.5 pt-1">
                   <button
                     onClick={() => setEditing(t)}
-                    className="flex-1 text-xs py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                    className="flex-1 text-xs py-1.5 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                   >
                     <Lucide.Pencil className="w-3.5 h-3.5" />
-                    <span>تعديل الرصيد/البيانات</span>
+                    <span>تعديل</span>
+                  </button>
+                  <button
+                    onClick={() => resetTreasury(t)}
+                    className="text-xs py-1.5 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                    title="تصفير الخزينة وجعل رصيدها 0.00 ج.م ومسح حركاتها"
+                  >
+                    <Lucide.RotateCcw className="w-3.5 h-3.5" />
+                    <span>تصفير</span>
                   </button>
                   <button
                     onClick={() => deleteTreasury(t)}

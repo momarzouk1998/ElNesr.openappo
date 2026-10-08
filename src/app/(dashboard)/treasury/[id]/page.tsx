@@ -145,6 +145,30 @@ export default function TreasuryStatementPage() {
     }
   }
 
+  async function handleResetTreasury() {
+    if (!data?.treasury) return;
+    if (
+      !confirm(
+        `⚠️ هل أنت متأكد من تصفير خزينة "${data.treasury.name}" بالكامل؟\n\nسيتم جعل الرصيد الافتتاحي والحالي 0.00 ج.م ومسح كافة حركات الخزينة.`
+      )
+    )
+      return;
+    if (!confirm(`⚠️ تأكيد نهائي لتصفير خزينة "${data.treasury.name}"؟`)) return;
+
+    try {
+      const res = await fetch(`/api/treasury/${id}/reset`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        alert("❌ " + (json?.error?.message || "فشل تصفير الخزينة"));
+        return;
+      }
+      alert("✅ " + json.message);
+      loadStatement();
+    } catch {
+      alert("❌ حدث خطأ في النظام أثناء تصفير الخزينة");
+    }
+  }
+
   // Generate and copy WhatsApp Formatted Statement
   function copyWhatsAppStatement() {
     if (!data) return;
@@ -245,6 +269,15 @@ export default function TreasuryStatementPage() {
           >
             <Lucide.MinusCircle className="w-4 h-4" />
             <span>سحب نقدية (-)</span>
+          </button>
+
+          <button
+            onClick={handleResetTreasury}
+            className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            title="تصفير هذه الخزينة بالكامل وجعل رصيدها 0.00 ج.م ومسح سجل حركاتها"
+          >
+            <Lucide.RotateCcw className="w-4 h-4 text-amber-700" />
+            <span>تصفير الخزينة (0.00 ج)</span>
           </button>
 
           <button
