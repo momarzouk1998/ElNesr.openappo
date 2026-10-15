@@ -5,6 +5,7 @@ import { COOKIE_NAME, verifySession } from "@/lib/db/auth";
 import prisma from "@/lib/db/prisma";
 import type { CurrentProfile, UserRole } from "@/lib/auth";
 import "./globals.css";
+import UpdateBanner from '@/components/UpdateBanner';
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +126,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20260909" />
       </head>
       <body className="min-h-screen font-[var(--font-cairo)] flex flex-col">
+        <UpdateBanner />
         {subStatus.status === "expiring_soon" && (
           <div className="no-print print:hidden bg-yellow-500 text-black px-4 py-2 text-center text-sm font-bold w-full shadow-sm">
             {subStatus.message}

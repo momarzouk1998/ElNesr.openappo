@@ -79,6 +79,7 @@ jobs:
               docker service create \
                 --name $SERVICE_NAME \
                 --replicas 1 \
+                --limit-memory 700m \
                 --network host \
                 --env-file "$ENV_FILE" \
                 "${ENV_FLAGS[@]}" \
