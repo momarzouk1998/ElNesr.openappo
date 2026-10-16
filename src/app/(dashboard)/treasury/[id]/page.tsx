@@ -322,9 +322,25 @@ export default function TreasuryStatementPage() {
         </div>
 
         {data && (
-          <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-left shrink-0">
-            <span className="text-[11px] font-bold text-emerald-800 block">الرصيد الحالي بالخزينة</span>
-            <span className="text-2xl font-black text-emerald-700 font-mono">
+          <div
+            className={`p-3.5 rounded-2xl border text-left shrink-0 ${
+              data.treasury.current_balance < 0
+                ? "bg-rose-50 border-rose-200"
+                : "bg-emerald-50 border-emerald-200"
+            }`}
+          >
+            <span
+              className={`text-[11px] font-bold block ${
+                data.treasury.current_balance < 0 ? "text-rose-800" : "text-emerald-800"
+              }`}
+            >
+              الرصيد الحالي بالخزينة
+            </span>
+            <span
+              className={`text-2xl font-black font-mono ${
+                data.treasury.current_balance < 0 ? "text-rose-700" : "text-emerald-700"
+              }`}
+            >
               {formatEGP(data.treasury.current_balance)} <span className="text-xs font-normal">ج.م</span>
             </span>
           </div>

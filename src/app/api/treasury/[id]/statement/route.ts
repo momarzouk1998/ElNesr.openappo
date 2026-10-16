@@ -340,14 +340,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // مزامنة الرصيد الحالي في قاعدة البيانات إذا كان هناك فرق لضمان تطابق (الافتتاحي + الوارد - المنصرف = الرصيد الحالي)
-    if (Math.abs(Number(treasury.current_balance || 0) - runningBalance) > 0.005) {
-      await prisma.treasuries.update({
-        where: { id: treasury.id },
-        data: { current_balance: runningBalance, updated_at: new Date() },
-      });
-    }
-
     // تطبيق فلاتر البحث والتواريخ ونوع الحركة
     let filteredItems = [...fullStatement];
 
@@ -396,7 +388,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           name: treasury.name,
           type: treasury.type,
           opening_balance: Number(treasury.opening_balance || 0),
-          current_balance: runningBalance,
+          current_balance: Number(treasury.current_balance || 0),
           calculated_balance: runningBalance,
           assigned_user: assignedUserName,
           notes: treasury.notes,
@@ -405,7 +397,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           opening_balance: Number(treasury.opening_balance || 0),
           total_in: totalInAll,
           total_out: totalOutAll,
-          current_balance: runningBalance,
+          current_balance: Number(treasury.current_balance || 0),
           calculated_balance: runningBalance,
           period_in: periodIn,
           period_out: periodOut,

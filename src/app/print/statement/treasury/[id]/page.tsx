@@ -275,13 +275,6 @@ export default async function TreasuryStatementPrintPage({
     });
   }
 
-  if (Math.abs(Number(treasury.current_balance || 0) - runningBalance) > 0.005) {
-    await prisma.treasuries.update({
-      where: { id: treasury.id },
-      data: { current_balance: runningBalance, updated_at: new Date() },
-    });
-  }
-
   let filteredItems = [...fullStatement];
 
   if (fromDate) {
@@ -304,6 +297,7 @@ export default async function TreasuryStatementPrintPage({
 
   const periodIn = filteredItems.reduce((s, i) => s + i.amountIn, 0);
   const periodOut = filteredItems.reduce((s, i) => s + i.amountOut, 0);
+  const currentBal = Number(treasury.current_balance || 0);
 
   const fPeriod = fromDate || toDate ? `من ${fromDate || "البداية"} إلى ${toDate || "الآن"}` : "كامل الفترة";
 
@@ -358,10 +352,24 @@ export default async function TreasuryStatementPrintPage({
             </span>
           </div>
 
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-            <span className="text-xs text-emerald-800 font-bold block mb-0.5">الرصيد الحالي بالخزينة:</span>
-            <span className="font-black text-emerald-700 text-lg font-mono">
-              {formatEGP(runningBalance)} ج.م
+          <div
+            className={`p-4 rounded-xl border ${
+              currentBal < 0 ? "bg-rose-50 border-rose-200" : "bg-emerald-50 border-emerald-200"
+            }`}
+          >
+            <span
+              className={`text-xs font-bold block mb-0.5 ${
+                currentBal < 0 ? "text-rose-800" : "text-emerald-800"
+              }`}
+            >
+              الرصيد الحالي بالخزينة:
+            </span>
+            <span
+              className={`font-black text-lg font-mono ${
+                currentBal < 0 ? "text-rose-700" : "text-emerald-700"
+              }`}
+            >
+              {formatEGP(currentBal)} ج.م
             </span>
           </div>
         </div>

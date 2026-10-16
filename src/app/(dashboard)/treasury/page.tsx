@@ -160,11 +160,19 @@ export default function TreasuryPage() {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <div className="text-xs font-bold text-slate-500">إجمالي الأرصدة الحالية بالخزائن</div>
-            <div className="text-2xl md:text-3xl font-black text-emerald-600 font-mono mt-1">
+            <div
+              className={`text-2xl md:text-3xl font-black font-mono mt-1 ${
+                totalBalance < 0 ? "text-rose-600" : "text-emerald-600"
+              }`}
+            >
               {formatEGP(totalBalance)} <span className="text-xs font-bold text-slate-500">ج.م</span>
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner">
+          <div
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner ${
+              totalBalance < 0 ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
+            }`}
+          >
             💰
           </div>
         </div>
@@ -224,10 +232,33 @@ export default function TreasuryPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500">الرصيد الحالي:</span>
-                  <span className="text-xl font-black text-emerald-600 font-mono">
-                    {formatEGP(t.current_balance)} <span className="text-xs font-bold text-slate-500">ج</span>
+                <div
+                  className={`mt-4 p-3 rounded-xl border flex items-center justify-between ${
+                    Number(t.current_balance) < 0
+                      ? "bg-rose-50/60 border-rose-200"
+                      : "bg-slate-50 border-slate-100"
+                  }`}
+                >
+                  <span
+                    className={`text-xs font-bold ${
+                      Number(t.current_balance) < 0 ? "text-rose-700" : "text-slate-500"
+                    }`}
+                  >
+                    الرصيد الحالي:
+                  </span>
+                  <span
+                    className={`text-xl font-black font-mono ${
+                      Number(t.current_balance) < 0 ? "text-rose-600" : "text-emerald-600"
+                    }`}
+                  >
+                    {formatEGP(t.current_balance)}{" "}
+                    <span
+                      className={`text-xs font-bold ${
+                        Number(t.current_balance) < 0 ? "text-rose-500" : "text-slate-500"
+                      }`}
+                    >
+                      ج
+                    </span>
                   </span>
                 </div>
               </div>
