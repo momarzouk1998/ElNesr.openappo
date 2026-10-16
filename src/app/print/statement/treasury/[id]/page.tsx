@@ -321,9 +321,6 @@ export default async function TreasuryStatementPrintPage({
             <span className="font-black text-slate-900 text-base">
               {treasury.name} ({treasury.type})
             </span>
-            {assignedUserName && (
-              <div className="text-xs text-blue-700 font-bold mt-1">👤 المسئول: {assignedUserName}</div>
-            )}
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
@@ -371,14 +368,12 @@ export default async function TreasuryStatementPrintPage({
               <th className="p-2 border border-slate-400 text-right">البيان والتفاصيل</th>
               <th className="p-2 border border-slate-400 whitespace-nowrap text-emerald-300">وارد (+)</th>
               <th className="p-2 border border-slate-400 whitespace-nowrap text-rose-300">منصرف (-)</th>
-              <th className="p-2 border border-slate-400 whitespace-nowrap">الرصيد</th>
-              <th className="p-2 border border-slate-400 whitespace-nowrap">المسئول</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 font-semibold">
             {filteredItems.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-6 text-center text-slate-400 font-bold">
+                <td colSpan={6} className="p-6 text-center text-slate-400 font-bold">
                   لا توجد حركات مسجلة خلال هذه الفترة
                 </td>
               </tr>
@@ -406,12 +401,6 @@ export default async function TreasuryStatementPrintPage({
                     <td className="p-2 border border-slate-200 font-mono text-rose-700 text-center whitespace-nowrap">
                       {item.amountOut > 0 ? `-${formatEGP(item.amountOut)}` : "—"}
                     </td>
-                    <td className="p-2 border border-slate-200 font-mono font-black text-slate-900 text-center whitespace-nowrap bg-slate-100/50">
-                      {formatEGP(item.balance)} ج
-                    </td>
-                    <td className="p-2 border border-slate-200 text-center text-[10px] text-slate-500 whitespace-nowrap">
-                      {item.user || "—"}
-                    </td>
                   </tr>
                 );
               })
@@ -429,10 +418,6 @@ export default async function TreasuryStatementPrintPage({
                 <td className="p-2.5 border border-slate-400 text-center font-mono text-rose-800">
                   -{formatEGP(periodOut)}
                 </td>
-                <td className="p-2.5 border border-slate-400 text-center font-mono text-slate-900">
-                  {formatEGP(Number(treasury.current_balance || 0))} ج
-                </td>
-                <td className="border border-slate-400"></td>
               </tr>
             </tfoot>
           )}

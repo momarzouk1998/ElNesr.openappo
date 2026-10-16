@@ -180,7 +180,6 @@ export default function TreasuryStatementPage() {
     let text = `🦅 *شركة النسر للأدوات واللوحات الكهربائية*\n`;
     text += `━━━━━━━━━━━━━━━━━━━━\n`;
     text += `🏦 *كشف حساب خزينة:* ${t.name} (${t.type})\n`;
-    if (t.assigned_user) text += `👤 *المسئول:* ${t.assigned_user}\n`;
     text += `📅 *الفترة:* ${fPeriod}\n`;
     text += `━━━━━━━━━━━━━━━━━━━━\n`;
     text += `💵 *الرصيد الافتتاحي:* ${formatEGP(s.opening_balance)} ج.م\n`;
@@ -197,11 +196,10 @@ export default function TreasuryStatementPage() {
       text += `• لا توجد حركات مسجلة بهذه الفترة\n`;
     } else {
       items.forEach((item, idx) => {
-        const sign = item.type === "in" ? "🟢 وارد: +" : "🔴 صادر: -";
+        const sign = item.type === "in" ? "🟢 وارد: +" : "🔴 منصرف: -";
         const amt = formatEGP(item.type === "in" ? item.amountIn : item.amountOut);
         const dStr = item.date ? item.date.slice(0, 10) : "";
-        const balStr = `(رصيد: ${formatEGP(item.balance)} ج)`;
-        text += `${idx + 1}. 📅 ${dStr} | ${sign}${amt} ج.م | ${balStr}\n   📝 البيان: ${item.label}\n`;
+        text += `${idx + 1}. 📅 ${dStr} | ${sign}${amt} ج.م\n   📝 البيان: ${item.label}\n`;
         if (item.notes && item.notes !== item.label) {
           text += `   💬 ملاحظات: ${item.notes}\n`;
         }
@@ -319,8 +317,7 @@ export default function TreasuryStatementPage() {
               )}
             </div>
             <p className="text-xs text-slate-500 font-semibold mt-1">
-              {data?.treasury.assigned_user ? `👤 المسئول: ${data.treasury.assigned_user} • ` : ""}
-              سجل تفصيلي دقيق لكافة الحركات النقدية والرصيد التراكمي اللحظي
+              سجل تفصيلي لكافة الحركات النقدية الواردة والمنصرفة
             </p>
           </div>
         </div>
@@ -450,26 +447,24 @@ export default function TreasuryStatementPage() {
                 <th className="p-3">البيان والتفاصيل</th>
                 <th className="p-3 whitespace-nowrap text-emerald-700">وارد (+)</th>
                 <th className="p-3 whitespace-nowrap text-rose-700">منصرف (-)</th>
-                <th className="p-3 whitespace-nowrap text-slate-900">الرصيد اللحظي</th>
-                <th className="p-3 whitespace-nowrap">المسئول</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-slate-400 font-bold">
+                  <td colSpan={5} className="p-12 text-center text-slate-400 font-bold">
                     ⏳ جاري تحميل كشف الحساب...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-rose-600 font-bold">
+                  <td colSpan={5} className="p-8 text-center text-rose-600 font-bold">
                     ❌ {error}
                   </td>
                 </tr>
               ) : (data?.items || []).length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-slate-400 font-semibold">
+                  <td colSpan={5} className="p-12 text-center text-slate-400 font-semibold">
                     لا توجد حركات مسجلة بالخزينة مطابقة للفلاتر
                   </td>
                 </tr>
@@ -507,12 +502,6 @@ export default function TreasuryStatementPage() {
                       <td className="p-3 font-mono font-extrabold text-rose-600 whitespace-nowrap">
                         {item.amountOut > 0 ? `-${formatEGP(item.amountOut)} ج` : "—"}
                       </td>
-
-                      <td className="p-3 font-mono font-black text-slate-900 whitespace-nowrap text-sm bg-slate-50/50">
-                        {formatEGP(item.balance)} ج
-                      </td>
-
-                      <td className="p-3 text-slate-600 text-xs whitespace-nowrap">{item.user || "—"}</td>
                     </tr>
                   );
                 })
@@ -530,10 +519,6 @@ export default function TreasuryStatementPage() {
                   <td className="p-3 font-mono text-rose-700 whitespace-nowrap">
                     -{formatEGP(data.summary.period_out)} ج
                   </td>
-                  <td className="p-3 font-mono text-slate-900 text-base whitespace-nowrap">
-                    {formatEGP(data.treasury.current_balance)} ج
-                  </td>
-                  <td></td>
                 </tr>
               </tfoot>
             )}
