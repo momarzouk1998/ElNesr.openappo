@@ -185,7 +185,6 @@ export default function TreasuryStatementPage() {
     text += `💵 *الرصيد الافتتاحي:* ${formatEGP(s.opening_balance)} ج.م\n`;
     text += `🟢 *إجمالي الوارد (+):* ${formatEGP(s.period_in)} ج.م\n`;
     text += `🔴 *إجمالي المنصرف (-):* ${formatEGP(s.period_out)} ج.م\n`;
-    text += `⚖️ *صافي حركة الفترة:* ${formatEGP(s.period_net)} ج.م\n`;
     text += `━━━━━━━━━━━━━━━━━━━━\n`;
     text += `💰 *الرصيد الحالي بالخزينة:* ${formatEGP(t.current_balance)} ج.م\n`;
     text += `━━━━━━━━━━━━━━━━━━━━\n`;
@@ -334,7 +333,7 @@ export default function TreasuryStatementPage() {
 
       {/* Summary KPI Cards */}
       {data && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
             <span className="text-[11px] font-bold text-slate-500 block mb-1">الرصيد الافتتاحي</span>
             <div className="text-lg md:text-xl font-black text-slate-800 font-mono">
@@ -353,18 +352,6 @@ export default function TreasuryStatementPage() {
             <span className="text-[11px] font-bold text-rose-700 block mb-1">🔴 إجمالي المنصرف بالفترة</span>
             <div className="text-lg md:text-xl font-black text-rose-600 font-mono">
               -{formatEGP(data.summary.period_out)} <span className="text-xs font-normal text-slate-400">ج</span>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-500 block mb-1">⚖️ صافي حركة الفترة</span>
-            <div
-              className={`text-lg md:text-xl font-black font-mono ${
-                data.summary.period_net >= 0 ? "text-emerald-700" : "text-rose-700"
-              }`}
-            >
-              {data.summary.period_net >= 0 ? "+" : ""}
-              {formatEGP(data.summary.period_net)} <span className="text-xs font-normal text-slate-400">ج</span>
             </div>
           </div>
         </div>

@@ -45,23 +45,33 @@ export async function POST() {
         _sum: { amount: true },
       });
 
-      // 5. المصروفات النقدية (-)
+      // 5. سلف ورواتب الموظفين لمعرفة المصروفات المرتبطة بها وعدم تكرارها
+      const [empAdvList, salaryList] = await Promise.all([
+        prisma.employee_advances.findMany({
+          where: { treasury_id: t.id },
+          select: { amount: true, expense_id: true },
+        }),
+        prisma.salary_payments.findMany({
+          where: { treasury_id: t.id },
+          select: { net_paid: true, expense_id: true },
+        }),
+      ]);
+
+      const linkedExpenseIds = [
+        ...empAdvList.map((e) => e.expense_id),
+        ...salaryList.map((s) => s.expense_id),
+      ].filter(Boolean) as string[];
+
       const expSum = await prisma.expenses.aggregate({
-        where: { treasury_id: t.id },
+        where: {
+          treasury_id: t.id,
+          ...(linkedExpenseIds.length > 0 ? { id: { notIn: linkedExpenseIds } } : {}),
+        },
         _sum: { amount: true },
       });
 
-      // 6. سلف الموظفين (-)
-      const empAdvSum = await prisma.employee_advances.aggregate({
-        where: { treasury_id: t.id },
-        _sum: { amount: true },
-      });
-
-      // 7. رواتب الموظفين (-)
-      const salarySum = await prisma.salary_payments.aggregate({
-        where: { treasury_id: t.id },
-        _sum: { net_paid: true },
-      });
+      const empAdvTotal = empAdvList.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      const salaryTotal = salaryList.reduce((sum, s) => sum + Number(s.net_paid || 0), 0);
 
       // 8. مسحوبات الشركاء (-)
       const partnerWithSum = await prisma.partner_withdrawals.aggregate({
@@ -69,12 +79,30 @@ export async function POST() {
         _sum: { amount: true },
       });
 
+      const shadowRefTypes = [
+        'customer_payment',
+        'customer_payment_adjustment',
+        'customer_payment_cancellation',
+        'supplier_payment',
+        'supplier_payment_adjustment',
+        'supplier_payment_cancellation',
+        'expense',
+        'expense_adjustment',
+        'expense_cancellation',
+        'partner_withdrawal',
+        'customer_adjustment',
+        'supplier_adjustment',
+        'employee_advance',
+        'employee_advance_cancel',
+        'salary_payment',
+      ];
+
       // 9. حركات الخزينة المباشرة والتحويلات (+/-)
       const txInSum = await prisma.treasury_transactions.aggregate({
         where: {
           treasury_id: t.id,
           direction: { in: ['in', 'transfer_in'] },
-          reference_type: { notIn: ['customer_payment', 'supplier_payment_cancellation'] },
+          reference_type: { notIn: shadowRefTypes },
         },
         _sum: { amount: true },
       });
@@ -82,7 +110,7 @@ export async function POST() {
         where: {
           treasury_id: t.id,
           direction: { in: ['out', 'transfer_out'] },
-          reference_type: { notIn: ['supplier_payment', 'customer_payment_cancellation', 'expense', 'partner_withdrawal'] },
+          reference_type: { notIn: shadowRefTypes },
         },
         _sum: { amount: true },
       });
@@ -100,8 +128,8 @@ export async function POST() {
         Number(custDebitSum._sum.amount || 0) +
         Number(suppCreditSum._sum.amount || 0) +
         Number(expSum._sum.amount || 0) +
-        Number(empAdvSum._sum.amount || 0) +
-        Number(salarySum._sum.net_paid || 0) +
+        empAdvTotal +
+        salaryTotal +
         Number(partnerWithSum._sum.amount || 0) +
         Number(txOutSum._sum.amount || 0);
 

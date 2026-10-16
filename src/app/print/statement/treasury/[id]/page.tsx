@@ -89,7 +89,25 @@ export default async function TreasuryStatementPrintPage({
     prisma.treasury_transactions.findMany({
       where: {
         treasury_id: id,
-        reference_type: { notIn: ["customer_payment", "supplier_payment", "partner_withdrawal", "expense"] },
+        reference_type: {
+          notIn: [
+            "customer_payment",
+            "customer_payment_adjustment",
+            "customer_payment_cancellation",
+            "supplier_payment",
+            "supplier_payment_adjustment",
+            "supplier_payment_cancellation",
+            "expense",
+            "expense_adjustment",
+            "expense_cancellation",
+            "partner_withdrawal",
+            "customer_adjustment",
+            "supplier_adjustment",
+            "employee_advance",
+            "employee_advance_cancel",
+            "salary_payment",
+          ],
+        },
       },
       orderBy: { transaction_date: "asc" },
       include: { by_user: { select: { full_name: true } } },
@@ -166,7 +184,11 @@ export default async function TreasuryStatementPrintPage({
     });
   }
 
+  const linkedExpenseIds = new Set(
+    [...empAdvances.map((e) => e.expense_id), ...salaryPayments.map((s) => s.expense_id)].filter(Boolean)
+  );
   for (const exp of expensesList) {
+    if (linkedExpenseIds.has(exp.id)) continue;
     allEvents.push({
       id: "exp-" + exp.id,
       date: new Date(exp.expense_date),
@@ -253,6 +275,13 @@ export default async function TreasuryStatementPrintPage({
     });
   }
 
+  if (Math.abs(Number(treasury.current_balance || 0) - runningBalance) > 0.005) {
+    await prisma.treasuries.update({
+      where: { id: treasury.id },
+      data: { current_balance: runningBalance, updated_at: new Date() },
+    });
+  }
+
   let filteredItems = [...fullStatement];
 
   if (fromDate) {
@@ -275,7 +304,6 @@ export default async function TreasuryStatementPrintPage({
 
   const periodIn = filteredItems.reduce((s, i) => s + i.amountIn, 0);
   const periodOut = filteredItems.reduce((s, i) => s + i.amountOut, 0);
-  const periodNet = periodIn - periodOut;
 
   const fPeriod = fromDate || toDate ? `من ${fromDate || "البداية"} إلى ${toDate || "الآن"}` : "كامل الفترة";
 
@@ -333,7 +361,7 @@ export default async function TreasuryStatementPrintPage({
           <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
             <span className="text-xs text-emerald-800 font-bold block mb-0.5">الرصيد الحالي بالخزينة:</span>
             <span className="font-black text-emerald-700 text-lg font-mono">
-              {formatEGP(Number(treasury.current_balance || 0))} ج.م
+              {formatEGP(runningBalance)} ج.م
             </span>
           </div>
         </div>
@@ -345,13 +373,6 @@ export default async function TreasuryStatementPrintPage({
           </span>
           <span>
             🔴 إجمالي المنصرف (-): <strong className="text-rose-700 font-mono">-{formatEGP(periodOut)} ج</strong>
-          </span>
-          <span>
-            ⚖️ صافي الفترة:{" "}
-            <strong className={periodNet >= 0 ? "text-emerald-700 font-mono" : "text-rose-700 font-mono"}>
-              {periodNet >= 0 ? "+" : ""}
-              {formatEGP(periodNet)} ج
-            </strong>
           </span>
           <span>
             عدد الحركات: <strong className="font-mono text-slate-900">{filteredItems.length}</strong>

@@ -116,7 +116,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       prisma.treasury_transactions.findMany({
         where: {
           treasury_id: id,
-          reference_type: { notIn: ["customer_payment", "supplier_payment", "partner_withdrawal", "expense"] },
+          reference_type: {
+            notIn: [
+              "customer_payment",
+              "customer_payment_adjustment",
+              "customer_payment_cancellation",
+              "supplier_payment",
+              "supplier_payment_adjustment",
+              "supplier_payment_cancellation",
+              "expense",
+              "expense_adjustment",
+              "expense_cancellation",
+              "partner_withdrawal",
+              "customer_adjustment",
+              "supplier_adjustment",
+              "employee_advance",
+              "employee_advance_cancel",
+              "salary_payment",
+            ],
+          },
         },
         orderBy: { transaction_date: "asc" },
         include: {
@@ -209,8 +227,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    // 5. المصروفات (-)
+    // 5. المصروفات (-) (مع استثناء المصروفات المرتبطة تلقائياً بسلف أو رواتب الموظفين لعدم التكرار)
+    const linkedExpenseIds = new Set(
+      [...empAdvances.map((e) => e.expense_id), ...salaryPayments.map((s) => s.expense_id)].filter(Boolean)
+    );
     for (const exp of expensesList) {
+      if (linkedExpenseIds.has(exp.id)) continue;
       allEvents.push({
         id: "exp-" + exp.id,
         date: new Date(exp.expense_date),
@@ -318,6 +340,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
+    // مزامنة الرصيد الحالي في قاعدة البيانات إذا كان هناك فرق لضمان تطابق (الافتتاحي + الوارد - المنصرف = الرصيد الحالي)
+    if (Math.abs(Number(treasury.current_balance || 0) - runningBalance) > 0.005) {
+      await prisma.treasuries.update({
+        where: { id: treasury.id },
+        data: { current_balance: runningBalance, updated_at: new Date() },
+      });
+    }
+
     // تطبيق فلاتر البحث والتواريخ ونوع الحركة
     let filteredItems = [...fullStatement];
 
@@ -366,7 +396,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           name: treasury.name,
           type: treasury.type,
           opening_balance: Number(treasury.opening_balance || 0),
-          current_balance: Number(treasury.current_balance || 0),
+          current_balance: runningBalance,
           calculated_balance: runningBalance,
           assigned_user: assignedUserName,
           notes: treasury.notes,
@@ -375,7 +405,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           opening_balance: Number(treasury.opening_balance || 0),
           total_in: totalInAll,
           total_out: totalOutAll,
-          current_balance: Number(treasury.current_balance || 0),
+          current_balance: runningBalance,
           calculated_balance: runningBalance,
           period_in: periodIn,
           period_out: periodOut,
